@@ -1,0 +1,54 @@
+server:
+  port: 9777
+
+Spring:
+  datasource:
+    url:  jdbc:postgresql://localhost:5432/master-sub-userDb
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+
+  mail:
+    host: smtp.gmail.com
+    port: 465
+    username: codemarathon2@gmail.com
+    password: pbujnsfaivmvctfj
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 965314523771-jrdfong38fmnc06i0k00k99lmtefbnj5.apps.googleusercontent.com
+            client-secret: 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
+            redirect-uri:  http://localhost:9777/api/vi/home/welcome
+
+
+
+
+
+master:
+  sub:
+    jwt:
+      expiration:
+        time: 1800000
+      secret:
+        key: 1f0ce471f341e5b58c2767f59be91b9008a0217fe63e8fcc8c381e375ba26533
+
