@@ -17,15 +17,16 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserComment {
+public class Comment {
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String text;
     private Date datePosted;
     private Long authorId;
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
-    @OneToMany
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL)
     private List<Like> likes;
 }

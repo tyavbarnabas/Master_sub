@@ -2,7 +2,6 @@ package com.codemarathon.product.service;
 
 import com.codemarathon.product.dto.ProductRequest;
 import com.codemarathon.product.dto.ProductResponse;
-import com.codemarathon.product.model.Package;
 
 import java.util.List;
 
@@ -13,5 +12,5 @@ public interface ProductService {
 
     ProductResponse getAllPackagesByNameForProduct(String productId);
 
-    void deleteProductAndRelatedData(String productId);
+    void deleteProduct(Long productId);
 }

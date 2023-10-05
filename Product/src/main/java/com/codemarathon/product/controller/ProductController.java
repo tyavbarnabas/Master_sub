@@ -33,7 +33,7 @@ public class ProductController {
     }
 
     @GetMapping("/product/delete")
-    public void deleteProductAndRelatedData(String productId){
-        productService.deleteProductAndRelatedData(productId);
+    public void deleteProductAndRelatedData(Long productId){
+        productService.deleteProduct(productId);
     }
 }

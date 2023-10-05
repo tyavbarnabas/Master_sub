@@ -23,7 +23,7 @@ public class Product {
     private String name;
     private String productCode;
     private String productDescription;
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "address_id")
     private Address address;
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
@@ -32,7 +32,7 @@ public class Product {
     private String dateUpdated;
     private boolean isUpdated;
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-    private List<UserComment> comments;
+    private List<Comment> comments;
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<Like> likes;
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)

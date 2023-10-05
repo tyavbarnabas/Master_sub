@@ -23,10 +23,7 @@ public class SubscribedUser {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @Column(name = "user_id")
     private Long userId;
 
-    @Column(name = "product_id")
-    private Long productId;
 
 }

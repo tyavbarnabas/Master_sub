@@ -9,7 +9,7 @@ Spring:
     driver-class-name: org.postgresql.Driver
 
 
-  jpa:
+  jpa:  
     hibernate:
       ddl-auto: create
     properties:

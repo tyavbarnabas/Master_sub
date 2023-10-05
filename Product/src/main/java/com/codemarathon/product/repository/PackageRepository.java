@@ -12,5 +12,5 @@ public interface PackageRepository extends JpaRepository<Package,Long> {
 
     List<Package> findByProductId(String productId);
 
-    void deleteByProductId(String productId);
+
 }

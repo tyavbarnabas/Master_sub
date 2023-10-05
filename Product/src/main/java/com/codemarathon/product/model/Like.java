@@ -20,4 +20,7 @@ public class Like {
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
+    @ManyToOne
+    @JoinColumn(name = "comment_id")
+    private Comment comment;
 }

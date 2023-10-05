@@ -13,6 +13,7 @@ import com.codemarathon.product.repository.ProductRepository;
 import com.codemarathon.product.service.ProductService;
 import com.codemarathon.product.utils.ProductUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
@@ -56,7 +58,7 @@ public class ProductServiceImpl implements ProductService {
 
             Package productPackage = new Package();
 
-            productPackage.setProductId(productCode);
+            productPackage.setProductCode(productCode);
             productPackage.setAmount(packageRequest.getAmount());
             productPackage.setPackageName(packageRequest.getPackageName());
             productPackage.setPackageDescription(packageRequest.getPackageDescription());
@@ -108,21 +110,14 @@ public class ProductServiceImpl implements ProductService {
                 .build();
     }
 
-
-    @Transactional
-    public void deleteProductAndRelatedData(String productId) {
+    public void deleteProduct(Long productId) {
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found"));
 
         productRepository.delete(product);
-        packageRepository.deleteByProductId(productId);
 
-        // Delete related comments
-        //commentRepository.deleteByProductId(productId);
 
-        // Delete related likes
-        //likeRepository.deleteByProductId(productId);
     }
 
 

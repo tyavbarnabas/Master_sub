@@ -2,7 +2,7 @@
 #spring.data.mongodb.port=27017
 #spring.data.mongodb.database=MasterSub
 server:
-  port: 9777
+  port: 9776
 
 Spring:
   datasource:
@@ -10,3 +10,5 @@ Spring:
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
+  application:
+    name: product

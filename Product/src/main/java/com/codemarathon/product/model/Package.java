@@ -14,8 +14,9 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Package {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long  Id;
-    private String productId;
+    private String productCode;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private Product product;
