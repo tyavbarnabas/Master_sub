@@ -1,11 +1,9 @@
 package com.codemarathon.user.service;
 
 
+import com.codemarathon.clients.allClient.ProductResponse;
 import com.codemarathon.user.constants.Role;
-import com.codemarathon.user.dto.AuthRequest;
-import com.codemarathon.user.dto.AuthenticationResponse;
-import com.codemarathon.user.dto.RegisterRequest;
-import com.codemarathon.user.dto.UserResponse;
+import com.codemarathon.user.dto.*;
 import com.codemarathon.user.model.User;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -22,6 +20,8 @@ public interface UserService {
 
    // User findUserBySubscriptionCode(UserRequest userRequest);
 
+    UserResponse getUserById(Long id);
+
 
     void saveUserVerificationToken(String verificationToken,User registeredUser);
 
@@ -30,4 +30,6 @@ public interface UserService {
     public String verifyEmail(String token);
 
     String validateToken(String verifiedToken);
+
+    ProductResponse getAllProduct();
 }

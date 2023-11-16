@@ -1,16 +1,19 @@
 package com.codemarathon.product.service;
 
+import com.codemarathon.clients.allClient.ProductResponse;
 import com.codemarathon.product.dto.ProductRequest;
-import com.codemarathon.product.dto.ProductResponse;
-
-import java.util.List;
 
 public interface ProductService {
     ProductResponse createProduct(ProductRequest productRequest);
 
-    public ProductResponse getPackageByNameForProduct(String productId, String packageId);
+    ProductResponse getPlanForProduct(String productId, Long packageId);
 
-    ProductResponse getAllPackagesByNameForProduct(String productId);
+    ProductResponse getAllPlansForProduct(String productCode);
 
     void deleteProduct(Long productId);
+
+    ProductResponse getAllProduct();
+
+    ProductResponse getProductByCode(String productCode);
+
 }

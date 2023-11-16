@@ -1,16 +1,16 @@
 package com.codemarathon.product.repository;
 
-import com.codemarathon.product.model.Package;
+import com.codemarathon.product.model.Plan;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 
 import java.util.List;
 
-public interface PackageRepository extends JpaRepository<Package,Long> {
+public interface PackageRepository extends JpaRepository<Plan,Long> {
 
-    Package findByProductIdAndPackageId(String productId, String packageId);
+    Plan findByProductCodeAndId(String productCode, Long Id);
 
-    List<Package> findByProductId(String productId);
+    List<Plan> findByProductCode(String productId);
 
 
 }

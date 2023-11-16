@@ -1,4 +1,4 @@
-package com.codemarathon.product.dto;
+package com.codemarathon.clients.allClient;
 
 import lombok.*;
 
@@ -7,8 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ProductResponse {
-
+public class UserResponse {
     private String responseCode;
     private String message;
     private Object details;

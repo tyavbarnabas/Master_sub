@@ -1,0 +1,35 @@
+server:
+  port: 9775
+
+Spring:
+  datasource:
+    url:  jdbc:postgresql://localhost:5432/master-sub-subscriptionDb
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  application:
+    name: subscription
+
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+
+
+master:
+  sub:
+    bank:
+     secret:
+       key: ${SECRET_KEY}
+     transfer:
+      url: ${FLUTTER_URL}
+    create:
+      payment:
+       url: https://api.flutterwave.com/v3/payment-plans
+

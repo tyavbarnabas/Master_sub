@@ -1,7 +1,7 @@
 package com.codemarathon.product.dto;
 
 import com.codemarathon.product.model.Address;
-import com.codemarathon.product.model.Package;
+import com.codemarathon.product.model.Plan;
 import lombok.*;
 
 
@@ -18,6 +18,6 @@ public class ProductRequest {
     private String productCode;
     private String productDescription;
     private Address address;
-    private List<Package> packages;
+    private List<Plan> plans;
 
 }

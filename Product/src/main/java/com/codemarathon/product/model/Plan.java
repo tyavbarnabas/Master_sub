@@ -6,21 +6,28 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 
 @Entity
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Package {
+public class Plan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long  Id;
+    private Long Id;
+    private String packageName;
+    private String interval;
+    private int duration;
     private String productCode;
-    @ManyToOne(fetch = FetchType.LAZY)
+    private double amount;
+    private String currency;
+    private String packageDescription;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id")
     private Product product;
-    private double amount;
-    private String packageName;
-    private String packageDescription;
 }

@@ -9,6 +9,7 @@ Spring:
     driver-class-name: org.postgresql.Driver
 
 
+
   jpa:  
     hibernate:
       ddl-auto: create
@@ -39,16 +40,27 @@ Spring:
             client-id: 965314523771-jrdfong38fmnc06i0k00k99lmtefbnj5.apps.googleusercontent.com
             client-secret: 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
             redirect-uri:  http://localhost:9777/api/vi/home/welcome
+  application:
+    name: user
 
 
 
-
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
 
 master:
   sub:
+#    Product_Url: http://localhost:9776/api/v1/product/all-products
     jwt:
       expiration:
         time: 1800000
       secret:
         key: 1f0ce471f341e5b58c2767f59be91b9008a0217fe63e8fcc8c381e375ba26533
 
+feign:
+  client:
+    config:
+      product:
+        url: http://localhost:9776

@@ -1,13 +1,22 @@
 package com.codemarathon.user.serviceImpl;
 
+import com.codemarathon.clients.allClient.NotificationClient;
+import com.codemarathon.clients.allClient.ProductClient;
+import com.codemarathon.clients.allClient.ProductResponse;
+import com.codemarathon.notification.dto.NotificationRequest;
+import com.codemarathon.notification.dto.NotificationResponse;
 import com.codemarathon.user.config.jwtConfig.JwtService;
+import com.codemarathon.user.constants.GeneralResponseEnum;
 import com.codemarathon.user.constants.Role;
 import com.codemarathon.user.dto.AuthRequest;
 import com.codemarathon.user.dto.AuthenticationResponse;
 import com.codemarathon.user.dto.RegisterRequest;
+import com.codemarathon.user.dto.UserResponse;
 import com.codemarathon.user.event.ApplicationUrl;
 import com.codemarathon.user.event.RegistrationCompleteEvent;
 import com.codemarathon.user.event.VerificationToken;
+import com.codemarathon.user.exceptions.NoProductFoundException;
+import com.codemarathon.user.exceptions.ProductResponseException;
 import com.codemarathon.user.exceptions.TokenNotFoundException;
 import com.codemarathon.user.exceptions.UsersNotFoundException;
 import com.codemarathon.user.model.User;
@@ -28,6 +37,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 
 import java.util.Calendar;
@@ -50,7 +60,13 @@ public class UserServiceImpl implements UserService {
     private final ApplicationEventPublisher publisher;
     private final AuthenticationManager authenticationManager;
     private final VerificationTokenRepository verificationTokenRepository;
+   // private final WebClient webClient;
+//   @Value("${master.sub.Product_Url}")
+//    private String get_Product_Url;
 
+   private final ProductClient productClient;
+
+   private final NotificationClient notificationClient;
 
 
     public AuthenticationResponse registerUser(RegisterRequest registerRequest,Role role,final HttpServletRequest request) {
@@ -95,6 +111,9 @@ public class UserServiceImpl implements UserService {
     }
 
 
+
+
+
     @Override
     public AuthenticationResponse authenticate(AuthRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
@@ -109,6 +128,25 @@ public class UserServiceImpl implements UserService {
         revokeAllUserToken(user);
         saveToken(user, jwtToken);
         log.info("token saved to token db....");
+
+        //todo send notification
+
+        NotificationResponse response = notificationClient.sendNotification(
+                            new NotificationRequest(
+                                    Math.toIntExact(user.getId()),
+                                    user.getEmail(),
+                                    String.format("Hi %s, welcome to Master-sub...",user.getFirstName())
+                            )
+        );
+
+        String responseCode = response.getResponseCode();
+        log.info("notification response code: {}",responseCode);
+
+       if(!responseCode.equals("000")){
+           return AuthenticationResponse.builder()
+                   .message("Notification not sent to user")
+                   .build();
+       }
 
 
         return AuthenticationResponse.builder()
@@ -158,6 +196,22 @@ public class UserServiceImpl implements UserService {
         return users.stream()
                 .map(this::mapUserToDto)
                 .collect(Collectors.toList());
+
+    }
+
+    @Override
+    public UserResponse getUserById(Long id){
+        Optional<User> user = userRepository.findById(id);
+
+        if(user.isEmpty()){
+            throw new NoProductFoundException("user not found");
+        }
+
+        return UserResponse.builder()
+                .responseCode(GeneralResponseEnum.SUCCESS.getCode())
+                .message(GeneralResponseEnum.SUCCESS.getMessage())
+                .details(user)
+                .build();
 
     }
 
@@ -273,8 +327,30 @@ public class UserServiceImpl implements UserService {
         return "Email verified Successfully, please Login";
     }
 
+    @Override
+    public ProductResponse getAllProduct() {
 
+        ProductResponse allProduct = productClient.getAllProduct();
+        log.info("product response: {}", allProduct);
 
+        if (allProduct == null) {
+
+            throw new NoProductFoundException("No products found.");
+        }
+
+        String responseCode = allProduct.getResponseCode();
+        log.info("product response code: {}", responseCode);
+
+        String responseMessage = allProduct.getMessage();
+        log.info("product response message: {}", responseMessage);
+
+        if ("000".equals(responseCode) && "Process Completed successfully".equals(responseMessage)) {
+            return allProduct;
+        } else {
+
+            throw new ProductResponseException("Error while fetching products: " + responseMessage);
+        }
+    }
 
 
 }

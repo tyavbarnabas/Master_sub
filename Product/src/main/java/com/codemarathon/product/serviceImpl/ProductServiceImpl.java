@@ -1,12 +1,12 @@
 package com.codemarathon.product.serviceImpl;
 
+import com.codemarathon.clients.allClient.ProductResponse;
 import com.codemarathon.product.constants.GeneralResponseEnum;
 import com.codemarathon.product.dto.ProductRequest;
-import com.codemarathon.product.dto.ProductResponse;
 import com.codemarathon.product.exception.PackageNotFoundException;
 import com.codemarathon.product.exception.ProductAlreadyExistException;
 import com.codemarathon.product.exception.ProductNotFoundException;
-import com.codemarathon.product.model.Package;
+import com.codemarathon.product.model.Plan;
 import com.codemarathon.product.model.Product;
 import com.codemarathon.product.repository.PackageRepository;
 import com.codemarathon.product.repository.ProductRepository;
@@ -51,26 +51,27 @@ public class ProductServiceImpl implements ProductService {
         product.setDateUpdated(createdDate);
         product.setUpdated(false);
 
-        List<Package> packages = new ArrayList<>();
+        List<Plan> plans = new ArrayList<>();
 
-        for (Package packageRequest : productRequest.getPackages()) {
+        for (Plan planRequest : productRequest.getPlans()) {
 
-            Package productPackage = new Package();
+            Plan productPlan = new Plan();
 
-            productPackage.setProductCode(productCode);
-            productPackage.setAmount(packageRequest.getAmount());
-            productPackage.setPackageName(packageRequest.getPackageName());
-            productPackage.setPackageDescription(packageRequest.getPackageDescription());
+            productPlan.setProductCode(productCode);
+            productPlan.setAmount(planRequest.getAmount());
+            productPlan.setPackageName(planRequest.getPackageName());
+            productPlan.setPackageDescription(planRequest.getPackageDescription());
+            productPlan.setInterval(planRequest.getInterval());
+            productPlan.setDuration(productPlan.getDuration());
 
-            packages.add(productPackage);
+            plans.add(productPlan);
         }
 
-        product.setPackages(packages);
+        product.setPlans(plans);
 
         productRepository.save(product);
 
-        packageRepository.saveAll(packages);
-
+        packageRepository.saveAll(plans);
 
         return ProductResponse.builder()
                 .responseCode(GeneralResponseEnum.SUCCESS.getCode())
@@ -81,8 +82,8 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductResponse getPackageByNameForProduct(String productId, String packageId) {
-        Package packages = packageRepository.findByProductIdAndPackageId(productId, packageId);
+    public ProductResponse getPlanForProduct(String productId, Long planId) {
+        Plan packages = packageRepository.findByProductCodeAndId(productId,planId);
 
         if (packages == null) {
             throw new PackageNotFoundException("package not found");
@@ -95,17 +96,18 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductResponse getAllPackagesByNameForProduct(String productId) {
-        List<Package>packages = packageRepository.findByProductId(productId);
+    public ProductResponse getAllPlansForProduct(String productCode) {
 
-        if(packages.isEmpty()){
+        List<Plan> plans = packageRepository.findByProductCode(productCode);
+
+        if(plans.isEmpty()){
             throw new PackageNotFoundException("Packages are not found");
         }
 
         return ProductResponse.builder()
                 .responseCode(GeneralResponseEnum.SUCCESS.getCode())
                 .message(GeneralResponseEnum.SUCCESS.getMessage())
-                .details(packages)
+                .details(plans)
                 .build();
     }
 
@@ -119,7 +121,40 @@ public class ProductServiceImpl implements ProductService {
 
     }
 
+    @Override
+    public ProductResponse getAllProduct() {
 
+        List<Product>allProducts = productRepository.findAllWithPackages();
+        log.info("all products: {}",allProducts);
+
+        if(allProducts.isEmpty()){
+            throw new ProductNotFoundException("No product found");
+        }
+        return ProductResponse.builder()
+                .responseCode(GeneralResponseEnum.SUCCESS.getCode())
+                .message(GeneralResponseEnum.SUCCESS.getMessage())
+                .details(allProducts)
+                .build();
+    }
+
+    @Override
+    public ProductResponse getProductByCode(String productCode){
+
+        Optional<Product> product = productRepository.findByProductCode(productCode);
+        log.info("product found: {}",product);
+
+        if (product.isEmpty()){
+
+            throw new ProductNotFoundException("No product found");
+        }
+
+        return ProductResponse.builder()
+
+                .responseCode(GeneralResponseEnum.SUCCESS.getCode())
+                .message(GeneralResponseEnum.SUCCESS.getMessage())
+                .details(product)
+                .build();
+    }
 
 }
 

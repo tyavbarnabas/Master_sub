@@ -9,10 +9,14 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class PackageRequest {
+public class PlanRequest {
 
     private String productId;
+    private String planName;
+    private String interval;
+    private int duration;
+    private String productCode;
     private double amount;
-    private String packageName;
+    private String currency;
     private String packageDescription;
 }
