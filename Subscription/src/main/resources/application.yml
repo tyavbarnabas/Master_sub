@@ -29,6 +29,7 @@ master:
        key: ${SECRET_KEY}
      transfer:
       url: ${FLUTTER_URL}
+     getUserById_URL: http://localhost:9777/api/v1/auth-users/user/{id}
     create:
       payment:
        url: https://api.flutterwave.com/v3/payment-plans

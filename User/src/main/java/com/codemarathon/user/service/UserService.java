@@ -2,12 +2,14 @@ package com.codemarathon.user.service;
 
 
 import com.codemarathon.clients.allClient.ProductResponse;
+import com.codemarathon.clients.allClient.UserResponse;
 import com.codemarathon.user.constants.Role;
 import com.codemarathon.user.dto.*;
 import com.codemarathon.user.model.User;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserService {
     AuthenticationResponse registerUser(RegisterRequest registerRequest,Role role,HttpServletRequest request);
@@ -22,6 +24,8 @@ public interface UserService {
 
     UserResponse getUserById(Long id);
 
+    Optional<User> findUserEmail(String email);
+
 
     void saveUserVerificationToken(String verificationToken,User registeredUser);
 
@@ -29,7 +33,15 @@ public interface UserService {
 
     public String verifyEmail(String token);
 
-    String validateToken(String verifiedToken);
+    //String validateToken(String verifiedToken);
 
     ProductResponse getAllProduct();
+
+    void createPasswordResetTokenForUser(User user, String passwordToken);
+
+    String validatePasswordResetToken(String passwordResetToken);
+
+    User findUserByPasswordToken(String passwordResetToken);
+
+    void resetUserPassword(User user, String newPassword);
 }

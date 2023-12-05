@@ -12,8 +12,14 @@ import com.codemarathon.subscription.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
+
 
 
 @Service
@@ -29,6 +35,8 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     private final UserClient userClient;
     private final ProductClient productClient;
 
+   // @Value("${master.sub.bank.getUserById_URL}")
+    //private final String getUserById_URL = "http://localhost:9777/api/v1/auth-users/user/";
 
     @Override
     public BankTransferResponse initiateCharge(BankTransferRequest bankTransferRequest) {
@@ -49,19 +57,42 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
 
     @Override
-    public UserResponse checkUserAuthentication(Long userId) {
+    //public UserResponse checkUserAuthentication(Long userId) {
+    public String checkUserAuthentication(Long userId) {
+//        String uri = getUserById_URL + userId;
+//        UserResponse userResponse = webClient
+//                .get()
+//                .uri(uri)
+//                .retrieve()
+//                .bodyToMono(UserResponse.class)
+//                .block();
 
-        UserResponse userResponse = userClient.getUserById(userId);
+        String url = "http://localhost:9777/api/v1/auth-users/user/";
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2hucmljaEBnbWFpbC5jb20iLCJpYXQiOjE3MDE2MTY5NTcsImV4cCI6MTcwMTYxODc1N30.HbeQHbwk0LHbaS_o7UySsN70rD0bxBZfmJBu-Z4H6NA");
 
-        if ("000".equals(userResponse.getResponseCode())) {
-            return userResponse;
-        } else {
+        ResponseEntity<String> result = new RestTemplate()
+                .exchange(url.concat(userId.toString()), HttpMethod.GET, new HttpEntity<>(headers), String.class);
 
-            return UserResponse.builder()
-                    .responseCode("401")
-                    .message("Only registered users are allowed to make a subscription.")
-                    .build();
-        }
+        log.info("result: {}", result);
+
+        return result.getBody();
+
+//        UserResponse userResponse = userClient.getUserById(userId);
+//        log.info("user Response: {}",userResponse);
+
+       // assert userResponse != null;
+//        if ("000".equals(result)) {
+//
+//            return result;
+//
+//        } else {
+//
+//            return UserResponse.builder()
+//                    .responseCode("401")
+//                    .message("Only registered users are allowed to make a subscription.")
+//                    .build();
+//        }
 
     }
 
@@ -69,10 +100,12 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     public void checkProductAndPlanExistence(String productCode, Long planId) {
 
         ProductResponse productResponse = productClient.getProductByCode(productCode);
+        log.info("product response : {}", productResponse);
 
         if (productResponse.getResponseCode().equals("000")) {
 
             Product product = (Product) productResponse.getDetails();
+            log.info("product : {}", product);
 
             if (isPlanExistsForProduct(product, planId)) {
 
@@ -91,6 +124,58 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         }
 
     }
+
+
+
+
+
+//    public Subscription createSubscription(Long userId,String productCode, Long planId) {
+//
+//        // Check user authentication
+//        UserResponse userResponse = userClient.authenticateUserById(userId);
+//
+//        if (!userResponse.getResponseCode().equals("000")) {
+//
+//            throw new UserAuthenticationException("User authentication failed");
+//        }
+//
+//        // Check if the product and plan exist
+//        ProductResponse productResponse = productClient.getProductByCode(productCode);
+//
+//        if (!productResponse.getResponseCode().equals("000")) {
+//            throw new ProductNotFoundException("Product not found");
+//        }
+//
+//        PlanResponse planResponse = productClient.getPlanById(planId);
+//
+//        if (!planResponse.getResponseCode().equals("000")) {
+//
+//            throw new PlanNotFoundException("Plan not found");
+//        }
+//
+//        // Retrieve the selected plan
+//        Plan selectedPlan = planResponse.getPlan();
+//
+//        // Calculate subscription details
+//        LocalDateTime startDate = LocalDateTime.now();
+//        int planDuration = selectedPlan.getDuration();
+//        LocalDateTime endDate = startDate.plusMonths(planDuration); // Adjust based on plan interval
+//        double monthlyCost = selectedPlan.getAmount();
+//        double totalCost = monthlyCost * planDuration;
+//
+//        // Create and return a Subscription object
+//        Subscription subscription = new Subscription();
+//        subscription.setUserId(userId);
+//        subscription.setProductId(Long.valueOf(productCode));
+//        subscription.setPlan(selectedPlan);
+//        subscription.setCurrency(selectedPlan.getCurrency());
+//        subscription.setStartDate(startDate);
+//        subscription.setEndDate(endDate);
+//        subscription.setTotalCost(totalCost);
+//
+//        return subscription;
+//    }
+
 
 
     private boolean isPlanExistsForProduct(Product product, Long planId) {

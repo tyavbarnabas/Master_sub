@@ -62,7 +62,7 @@ public class ProductServiceImpl implements ProductService {
             productPlan.setPackageName(planRequest.getPackageName());
             productPlan.setPackageDescription(planRequest.getPackageDescription());
             productPlan.setInterval(planRequest.getInterval());
-            productPlan.setDuration(productPlan.getDuration());
+            productPlan.setDuration(planRequest.getDuration());
 
             plans.add(productPlan);
         }
@@ -83,6 +83,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponse getPlanForProduct(String productId, Long planId) {
+
         Plan packages = packageRepository.findByProductCodeAndId(productId,planId);
 
         if (packages == null) {
@@ -155,6 +156,9 @@ public class ProductServiceImpl implements ProductService {
                 .details(product)
                 .build();
     }
+
+
+
 
 }
 

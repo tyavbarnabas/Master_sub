@@ -1,21 +1,20 @@
 package com.codemarathon.user.controllers;
 
-import com.codemarathon.user.config.jwtConfig.JwtService;
 import com.codemarathon.user.constants.Role;
 import com.codemarathon.user.dto.AuthenticationResponse;
 import com.codemarathon.user.dto.AuthRequest;
 import com.codemarathon.user.dto.RegisterRequest;
-import com.codemarathon.user.event.ApplicationUrl;
-import com.codemarathon.user.event.RegistrationCompleteEvent;
-import com.codemarathon.user.exceptions.UsersNotFoundException;
-import com.codemarathon.user.model.User;
+import com.codemarathon.user.password.PasswordResetRequest;
+import com.codemarathon.user.password.ProcessPasswordResetService;
 import com.codemarathon.user.service.UserService;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.UnsupportedEncodingException;
 
 
 @RestController
@@ -24,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/users")
 public class RegisterController {
     private final UserService userService;
+    private final ProcessPasswordResetService processPasswordResetService;
 
 
     @PostMapping("/register")
@@ -40,12 +40,30 @@ public class RegisterController {
 
     }
 
-
     @GetMapping("/verifyEmail")
     public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
         String verificationResult = userService.verifyEmail(token);
         return ResponseEntity.ok(verificationResult);
     }
+
+
+    @PostMapping("/password-reset-request")
+    public ResponseEntity<String> resetPasswordRequest(@RequestBody PasswordResetRequest passwordResetRequest,
+                                                       HttpServletRequest request)
+            throws MessagingException, UnsupportedEncodingException {
+
+        String passwordResetUrl = processPasswordResetService.resetPasswordRequest(passwordResetRequest, request);
+        return ResponseEntity.ok(passwordResetUrl);
+    }
+
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody PasswordResetRequest passwordResetRequest,
+                                                @RequestParam("token") String passwordResetToken) {
+        String result = processPasswordResetService.processPasswordReset(passwordResetRequest, passwordResetToken);
+        return ResponseEntity.ok(result);
+    }
+
 
 
 }

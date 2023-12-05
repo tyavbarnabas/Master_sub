@@ -3,6 +3,7 @@ package com.codemarathon.user.serviceImpl;
 import com.codemarathon.clients.allClient.NotificationClient;
 import com.codemarathon.clients.allClient.ProductClient;
 import com.codemarathon.clients.allClient.ProductResponse;
+import com.codemarathon.clients.allClient.UserResponse;
 import com.codemarathon.notification.dto.NotificationRequest;
 import com.codemarathon.notification.dto.NotificationResponse;
 import com.codemarathon.user.config.jwtConfig.JwtService;
@@ -11,7 +12,6 @@ import com.codemarathon.user.constants.Role;
 import com.codemarathon.user.dto.AuthRequest;
 import com.codemarathon.user.dto.AuthenticationResponse;
 import com.codemarathon.user.dto.RegisterRequest;
-import com.codemarathon.user.dto.UserResponse;
 import com.codemarathon.user.event.ApplicationUrl;
 import com.codemarathon.user.event.RegistrationCompleteEvent;
 import com.codemarathon.user.event.VerificationToken;
@@ -20,6 +20,7 @@ import com.codemarathon.user.exceptions.ProductResponseException;
 import com.codemarathon.user.exceptions.TokenNotFoundException;
 import com.codemarathon.user.exceptions.UsersNotFoundException;
 import com.codemarathon.user.model.User;
+import com.codemarathon.user.password.PasswordResetService;
 import com.codemarathon.user.repository.UserRepository;
 import com.codemarathon.user.repository.VerificationTokenRepository;
 import com.codemarathon.user.service.UserService;
@@ -27,6 +28,7 @@ import com.codemarathon.user.token.Token;
 import com.codemarathon.user.token.TokenRepository;
 import com.codemarathon.user.token.TokenType;
 import com.codemarathon.user.utils.ApplicationUtils;
+import com.codemarathon.user.utils.ValidateToken;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,10 +39,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 
 
-import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -60,6 +60,10 @@ public class UserServiceImpl implements UserService {
     private final ApplicationEventPublisher publisher;
     private final AuthenticationManager authenticationManager;
     private final VerificationTokenRepository verificationTokenRepository;
+
+    private  final ValidateToken validateTokenClass;
+
+    private final PasswordResetService passwordResetService;
    // private final WebClient webClient;
 //   @Value("${master.sub.Product_Url}")
 //    private String get_Product_Url;
@@ -128,8 +132,6 @@ public class UserServiceImpl implements UserService {
         revokeAllUserToken(user);
         saveToken(user, jwtToken);
         log.info("token saved to token db....");
-
-        //todo send notification
 
         NotificationResponse response = notificationClient.sendNotification(
                             new NotificationRequest(
@@ -201,10 +203,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse getUserById(Long id){
+
         Optional<User> user = userRepository.findById(id);
+        log.info("user : {}",user);
 
         if(user.isEmpty()){
-            throw new NoProductFoundException("user not found");
+
+            throw new UsersNotFoundException("user not found");
         }
 
         return UserResponse.builder()
@@ -213,6 +218,11 @@ public class UserServiceImpl implements UserService {
                 .details(user)
                 .build();
 
+    }
+
+    @Override
+    public Optional<User> findUserEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 
     private RegisterRequest mapUserToDto(User user) {
@@ -302,30 +312,10 @@ public class UserServiceImpl implements UserService {
             return "The account has already been verified, please login";
         }
 
-        return validateToken(token);
+        return validateTokenClass.validateToken(token);
     }
 
-    public String validateToken(String token) {
 
-        VerificationToken retrievedToken = verificationTokenRepository.findByToken(token);
-
-        if (retrievedToken == null) {
-
-            return "Invalid retrievedToken";
-        }
-
-        User user = retrievedToken.getUser();
-        Calendar calendar = Calendar.getInstance();
-
-        if ((retrievedToken.getExpirationTime().getTime() - calendar.getTime().getTime()) <= 0) {
-            verificationTokenRepository.delete(retrievedToken);
-            return "Token is expired";
-        }
-
-        user.setVerified(true);
-        userRepository.save(user);
-        return "Email verified Successfully, please Login";
-    }
 
     @Override
     public ProductResponse getAllProduct() {
@@ -350,6 +340,28 @@ public class UserServiceImpl implements UserService {
 
             throw new ProductResponseException("Error while fetching products: " + responseMessage);
         }
+    }
+
+    @Override
+    public void createPasswordResetTokenForUser(User user, String passwordToken) {
+        passwordResetService.createPasswordResetTokenForUser(passwordToken,user);
+    }
+    @Override
+    public String validatePasswordResetToken(String passwordResetToken) {
+        return passwordResetService.validatePasswordResetToken(passwordResetToken);
+    }
+
+    @Override
+    public User findUserByPasswordToken(String passwordResetToken) {
+        return passwordResetService.findUserByPasswordToken(passwordResetToken).get();
+    }
+
+
+
+    @Override
+    public void resetUserPassword(User user, String newPassword) {
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 
 

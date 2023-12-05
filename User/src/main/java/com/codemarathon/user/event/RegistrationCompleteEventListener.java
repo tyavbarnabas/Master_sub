@@ -58,13 +58,34 @@ public class RegistrationCompleteEventListener implements ApplicationListener<Re
                 "Thank you masterSubs";
 
         MimeMessage message = javaMailSender.createMimeMessage();
-        var messageHelper = new MimeMessageHelper(message);
+        MessageSender(subject, senderName, mailContent, message);
+    }
+
+
+    public void sendPasswordResetVerificationEmail(String url) throws MessagingException, UnsupportedEncodingException {
+
+        String subject = "ForgotPassword";
+        String senderName = "MasterSubs";
+        String mailContent = " Hi," + registeredUser.getFirstName()+ " " +
+                "Thank you recently request To change you password \n" +
+                "please,follow the link below to reset your password.\n" +
+                "Reset Password : \n "+
+                url + "\n"+
+                "Thank you masterSubs";
+
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        log.info("Message: {}",mimeMessage);
+        MessageSender(subject, senderName, mailContent, mimeMessage);
+    }
+
+    private void MessageSender(String subject, String senderName, String mailContent, MimeMessage mimeMessage) throws MessagingException, UnsupportedEncodingException {
+        var messageHelper = new MimeMessageHelper(mimeMessage);
         messageHelper.setFrom("codemarathon2@gmail.com",senderName);
         messageHelper.setTo(registeredUser.getEmail());
         messageHelper.setSubject(subject);
         messageHelper.setText(mailContent);
-        javaMailSender.send(message);
+        javaMailSender.send(mimeMessage);
 
-        log.info("mail sent successfully: {}",message);
+        log.info("mail sent successfully: {}",mimeMessage);
     }
 }

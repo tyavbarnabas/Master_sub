@@ -1,8 +1,8 @@
 package com.codemarathon.user.exceptions;
 
 import com.codemarathon.clients.allClient.ProductResponse;
+import com.codemarathon.clients.allClient.UserResponse;
 import com.codemarathon.user.constants.GeneralResponseEnum;
-import com.codemarathon.user.dto.UserResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +52,32 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(TokenNotFoundException.class)
     public ResponseEntity<UserResponse> handleTokenNotFoundException(TokenNotFoundException ex) {
+        return new ResponseEntity<>(new UserResponse(GeneralResponseEnum.FAILED.getCode(),
+                ex.getMessage(),
+                GeneralResponseEnum.FAILED.getMessage()), HttpStatus.NOT_FOUND);
+    }
+
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<UserResponse> handleInvalidPasswordException(InvalidPasswordException ex) {
+        return new ResponseEntity<>(new UserResponse(GeneralResponseEnum.FAILED.getCode(),
+                ex.getMessage(),
+                GeneralResponseEnum.FAILED.getMessage()), HttpStatus.NOT_FOUND);
+    }
+
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(PasswordResetTokenNotFoundException.class)
+    public ResponseEntity<UserResponse> handlePasswordResetTokenNotFoundException(PasswordResetTokenNotFoundException ex) {
+        return new ResponseEntity<>(new UserResponse(GeneralResponseEnum.FAILED.getCode(),
+                ex.getMessage(),
+                GeneralResponseEnum.FAILED.getMessage()), HttpStatus.NOT_FOUND);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<UserResponse> handleTokenExpiredException(TokenExpiredException ex) {
         return new ResponseEntity<>(new UserResponse(GeneralResponseEnum.FAILED.getCode(),
                 ex.getMessage(),
                 GeneralResponseEnum.FAILED.getMessage()), HttpStatus.NOT_FOUND);

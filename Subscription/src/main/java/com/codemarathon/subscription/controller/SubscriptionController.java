@@ -1,5 +1,6 @@
 package com.codemarathon.subscription.controller;
 
+import com.codemarathon.clients.allClient.UserResponse;
 import com.codemarathon.subscription.dto.BankTransferRequest;
 import com.codemarathon.subscription.dto.BankTransferResponse;
 import com.codemarathon.subscription.service.SubscriptionService;
@@ -20,6 +21,14 @@ public class SubscriptionController {
     public BankTransferResponse initiateCharge(@RequestBody BankTransferRequest bankTransferRequest){
         log.info("entering the subscription controller ...");
         return  subscriptionService.initiateCharge(bankTransferRequest);
+    }
+
+
+
+    @GetMapping("/check/{id}")
+    public String checkUserAuthentication(@PathVariable("id") Long userId) {
+        log.info("entering check user authentication controller...");
+        return subscriptionService.checkUserAuthentication(userId);
     }
 
 

@@ -1,8 +1,8 @@
 package com.codemarathon.user.controllers;
 
 import com.codemarathon.clients.allClient.ProductResponse;
+import com.codemarathon.clients.allClient.UserResponse;
 import com.codemarathon.user.dto.RegisterRequest;
-import com.codemarathon.user.dto.UserResponse;
 import com.codemarathon.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

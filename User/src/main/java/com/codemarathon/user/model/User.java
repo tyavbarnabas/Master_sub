@@ -2,6 +2,7 @@ package com.codemarathon.user.model;
 
 import com.codemarathon.user.constants.Role;
 import com.codemarathon.user.token.Token;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.NaturalId;
@@ -16,7 +17,7 @@ import java.util.List;
 
 
 @Entity
-@ToString
+//@ToString
 @Setter
 @Getter
 @AllArgsConstructor
@@ -41,6 +42,7 @@ public class User implements UserDetails {
     private boolean isVerified = false;
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private List<Token>tokens;
 
     private String productId;
