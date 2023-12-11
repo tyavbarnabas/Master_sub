@@ -82,4 +82,12 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 GeneralResponseEnum.FAILED.getMessage()), HttpStatus.NOT_FOUND);
     }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(UserNotEnabledException.class)
+    public ResponseEntity<UserResponse> handleUserNotEnabledException(UserNotEnabledException ex) {
+        return new ResponseEntity<>(new UserResponse(GeneralResponseEnum.FAILED.getCode(),
+                ex.getMessage(),
+                GeneralResponseEnum.FAILED.getMessage()), HttpStatus.NOT_FOUND);
+    }
 }

@@ -1,4 +1,4 @@
-package com.codemarathon.user.config;
+package com.codemarathon.user.config.webClientConfig;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

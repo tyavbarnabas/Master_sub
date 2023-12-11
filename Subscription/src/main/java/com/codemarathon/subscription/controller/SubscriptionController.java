@@ -1,5 +1,6 @@
 package com.codemarathon.subscription.controller;
 
+import com.codemarathon.clients.allClient.GetUserByIdDto;
 import com.codemarathon.clients.allClient.UserResponse;
 import com.codemarathon.subscription.dto.BankTransferRequest;
 import com.codemarathon.subscription.dto.BankTransferResponse;
@@ -26,7 +27,7 @@ public class SubscriptionController {
 
 
     @GetMapping("/check/{id}")
-    public String checkUserAuthentication(@PathVariable("id") Long userId) {
+    public GetUserByIdDto checkUserAuthentication(@PathVariable("id") Long userId) {
         log.info("entering check user authentication controller...");
         return subscriptionService.checkUserAuthentication(userId);
     }

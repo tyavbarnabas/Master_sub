@@ -1,6 +1,7 @@
 package com.codemarathon.user.service;
 
 
+import com.codemarathon.clients.allClient.GetUserByIdDto;
 import com.codemarathon.clients.allClient.ProductResponse;
 import com.codemarathon.clients.allClient.UserResponse;
 import com.codemarathon.user.constants.Role;
@@ -22,7 +23,7 @@ public interface UserService {
 
    // User findUserBySubscriptionCode(UserRequest userRequest);
 
-    UserResponse getUserById(Long id);
+    GetUserByIdDto getUserById(Long id);
 
     Optional<User> findUserEmail(String email);
 

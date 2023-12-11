@@ -12,7 +12,7 @@ Spring:
 
   jpa:  
     hibernate:
-      ddl-auto: create
+      ddl-auto: create-drop
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -32,14 +32,15 @@ Spring:
             enable: true
 
 
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: 965314523771-jrdfong38fmnc06i0k00k99lmtefbnj5.apps.googleusercontent.com
-            client-secret: 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
+#  security:
+#    oauth2:
+#      client:
+#        registration:
+#          google:
+#            client-id: 965314523771-jrdfong38fmnc06i0k00k99lmtefbnj5.apps.googleusercontent.com
+#            client-secret: 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
            ## redirect-uri:  http://localhost:9777/api/vi/home/welcome
+
   application:
     name: user
 

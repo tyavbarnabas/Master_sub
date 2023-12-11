@@ -1,13 +1,12 @@
 package com.codemarathon.user.serviceImpl;
 
+import com.codemarathon.clients.allClient.GetUserByIdDto;
 import com.codemarathon.clients.allClient.NotificationClient;
 import com.codemarathon.clients.allClient.ProductClient;
 import com.codemarathon.clients.allClient.ProductResponse;
-import com.codemarathon.clients.allClient.UserResponse;
 import com.codemarathon.notification.dto.NotificationRequest;
 import com.codemarathon.notification.dto.NotificationResponse;
 import com.codemarathon.user.config.jwtConfig.JwtService;
-import com.codemarathon.user.constants.GeneralResponseEnum;
 import com.codemarathon.user.constants.Role;
 import com.codemarathon.user.dto.AuthRequest;
 import com.codemarathon.user.dto.AuthenticationResponse;
@@ -15,10 +14,7 @@ import com.codemarathon.user.dto.RegisterRequest;
 import com.codemarathon.user.event.ApplicationUrl;
 import com.codemarathon.user.event.RegistrationCompleteEvent;
 import com.codemarathon.user.event.VerificationToken;
-import com.codemarathon.user.exceptions.NoProductFoundException;
-import com.codemarathon.user.exceptions.ProductResponseException;
-import com.codemarathon.user.exceptions.TokenNotFoundException;
-import com.codemarathon.user.exceptions.UsersNotFoundException;
+import com.codemarathon.user.exceptions.*;
 import com.codemarathon.user.model.User;
 import com.codemarathon.user.password.PasswordResetService;
 import com.codemarathon.user.repository.UserRepository;
@@ -126,6 +122,8 @@ public class UserServiceImpl implements UserService {
 
         var user = userRepository.findByEmail(request.getUsername()).orElseThrow(()-> new UsersNotFoundException("User not found"));
 
+        checkUserStatus(user);
+
         var jwtToken = jwtService.generateToken(user);
         log.info("generated jwt token for user: {}", jwtToken);
 
@@ -155,6 +153,12 @@ public class UserServiceImpl implements UserService {
                 .message("user successfully authenticated")
                 .token(jwtToken)
                 .build();
+    }
+
+    private void checkUserStatus(User user) {
+        if (!user.isEnabled()) {
+            throw new UserNotEnabledException("User is not enabled or not verified");
+        }
     }
 
 
@@ -202,7 +206,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse getUserById(Long id){
+    public GetUserByIdDto getUserById(Long id){
 
         Optional<User> user = userRepository.findById(id);
         log.info("user : {}",user);
@@ -212,10 +216,14 @@ public class UserServiceImpl implements UserService {
             throw new UsersNotFoundException("user not found");
         }
 
-        return UserResponse.builder()
-                .responseCode(GeneralResponseEnum.SUCCESS.getCode())
-                .message(GeneralResponseEnum.SUCCESS.getMessage())
-                .details(user)
+        return GetUserByIdDto.builder()
+                .id(user.get().getId())
+                .subscriptionCode(user.get().getSubscriptionCode())
+                .firstName(user.get().getFirstName())
+                .lastName(user.get().getLastName())
+                .address(user.get().getAddress())
+                .email(user.get().getEmail())
+                .mobile(user.get().getMobile())
                 .build();
 
     }
@@ -308,7 +316,8 @@ public class UserServiceImpl implements UserService {
             return "Invalid Verification token";
         }
 
-        if (verifiedToken.getUser().isVerified()) {
+
+        if (verifiedToken.getUser().isEnabled()) {
             return "The account has already been verified, please login";
         }
 

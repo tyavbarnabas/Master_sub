@@ -26,6 +26,8 @@ public class VerificationToken {
     @JoinColumn(name = "user_id")
     private User user;
     private static final int Expiration_Time = 15;
+    @Transient
+    private boolean isTokenExpired;
 
 
     public VerificationToken(String token, User user) {
@@ -46,7 +48,6 @@ public class VerificationToken {
         calendar.add(Calendar.MINUTE,Expiration_Time);
         return new Date(calendar.getTime().getTime());
     }
-
 
 
 }

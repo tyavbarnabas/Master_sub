@@ -20,6 +20,7 @@ import java.util.List;
 //@ToString
 @Setter
 @Getter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "Master_sub_user_Tbl")
@@ -39,8 +40,7 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
     private String registeredTime;
-    private boolean isVerified = false;
-
+    private boolean isEnabled = false;
     @OneToMany(mappedBy = "user")
     @JsonIgnore
     private List<Token>tokens;
@@ -78,7 +78,7 @@ public class User implements UserDetails {
         return true;
     }
 
-    @Override
+
     public boolean isEnabled() {
         return true;
     }

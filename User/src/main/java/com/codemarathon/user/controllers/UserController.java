@@ -1,7 +1,8 @@
 package com.codemarathon.user.controllers;
 
+import com.codemarathon.clients.allClient.GetUserByIdDto;
 import com.codemarathon.clients.allClient.ProductResponse;
-import com.codemarathon.clients.allClient.UserResponse;
+import com.codemarathon.user.config.jwtConfig.JwtService;
 import com.codemarathon.user.dto.RegisterRequest;
 import com.codemarathon.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final JwtService jwtService;
 
     @GetMapping("/all-users")
     public List<RegisterRequest> GetAllUsers(){
@@ -33,10 +35,12 @@ public class UserController {
     }
 
     @GetMapping("/user/{id}")
-    public UserResponse getUserById(@PathVariable("id") Long id){
+    public GetUserByIdDto getUserById(@PathVariable("id") Long id){
         log.info("entering the get user controller...");
         return userService.getUserById(id);
     }
+
+
 
 
 

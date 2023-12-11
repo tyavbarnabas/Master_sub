@@ -1,13 +1,11 @@
 package com.codemarathon.subscription.serviceImpl;
 
-import com.codemarathon.clients.allClient.ProductClient;
-import com.codemarathon.clients.allClient.ProductResponse;
-import com.codemarathon.clients.allClient.UserClient;
-import com.codemarathon.clients.allClient.UserResponse;
+import com.codemarathon.clients.allClient.*;
 import com.codemarathon.product.exception.ProductNotFoundException;
 import com.codemarathon.product.model.Product;
 import com.codemarathon.subscription.dto.*;
 import com.codemarathon.subscription.exception.PlanNotFoundException;
+import com.codemarathon.subscription.exception.UserNotFoundException;
 import com.codemarathon.subscription.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +17,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.nio.file.attribute.UserPrincipalNotFoundException;
 
 
 @Service
@@ -32,11 +32,13 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     private String secret_key;
 
     private final WebClient webClient;
-    private final UserClient userClient;
+
     private final ProductClient productClient;
 
-   // @Value("${master.sub.bank.getUserById_URL}")
-    //private final String getUserById_URL = "http://localhost:9777/api/v1/auth-users/user/";
+    @Value("${master.sub.bank.getUserById_URL}")
+    private String getUserById_URL;
+
+
 
     @Override
     public BankTransferResponse initiateCharge(BankTransferRequest bankTransferRequest) {
@@ -51,50 +53,38 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
         log.info("Bank response: {}", response);
 
+
+
         return response;
 
     }
 
 
     @Override
-    //public UserResponse checkUserAuthentication(Long userId) {
-    public String checkUserAuthentication(Long userId) {
-//        String uri = getUserById_URL + userId;
-//        UserResponse userResponse = webClient
-//                .get()
-//                .uri(uri)
-//                .retrieve()
-//                .bodyToMono(UserResponse.class)
-//                .block();
+    public GetUserByIdDto checkUserAuthentication(Long userId) {
 
-        String url = "http://localhost:9777/api/v1/auth-users/user/";
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2hucmljaEBnbWFpbC5jb20iLCJpYXQiOjE3MDE2MTY5NTcsImV4cCI6MTcwMTYxODc1N30.HbeQHbwk0LHbaS_o7UySsN70rD0bxBZfmJBu-Z4H6NA");
+        String uri = getUserById_URL + "/" + userId;
+        String jwtToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0eWF2YmFybmFiYXMyQGdtYWlsLmNvbSIsImlhdCI6MTcwMjI5NzExOCwiZXhwIjoxNzAyMjk4OTE4fQ.MdZoxqs0XQoFcf6um5zX71JEEBhpusTgNRYmMwyZuxU";
 
-        ResponseEntity<String> result = new RestTemplate()
-                .exchange(url.concat(userId.toString()), HttpMethod.GET, new HttpEntity<>(headers), String.class);
 
-        log.info("result: {}", result);
+        GetUserByIdDto response = webClient
+                .get()
+                .uri(uri)
+                .header("Authorization", "Bearer " + jwtToken)
+                .retrieve()
+                .bodyToMono(GetUserByIdDto.class)
+                .block();
 
-        return result.getBody();
+        if(response == null){
 
-//        UserResponse userResponse = userClient.getUserById(userId);
-//        log.info("user Response: {}",userResponse);
+            throw new UserNotFoundException("user not found");
+        }
 
-       // assert userResponse != null;
-//        if ("000".equals(result)) {
-//
-//            return result;
-//
-//        } else {
-//
-//            return UserResponse.builder()
-//                    .responseCode("401")
-//                    .message("Only registered users are allowed to make a subscription.")
-//                    .build();
-//        }
+        return response;
 
     }
+
+
 
     @Override
     public void checkProductAndPlanExistence(String productCode, Long planId) {
@@ -182,6 +172,21 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         return product.getPlans().stream().anyMatch(plan -> plan.getId().equals(planId));
     }
 
+
+//    private String getNewJwtToken() {
+//        // Implement your logic to obtain a new JWT token dynamically
+//        // This might involve calling an authentication service or refreshing the token
+//
+//        // Example: Assume a method refreshToken() is available in JwtService
+//        try {
+//            // Store the current token for refresh
+//            existingToken = jwtService.generateToken(userDetails);  // Assuming userDetails is available
+//            return existingToken;
+//        } catch (Exception e) {
+//            log.error("Error refreshing JWT token: {}", e.getMessage());
+//            throw new RuntimeException("Error refreshing JWT token", e);
+//        }
+//    }
 
 
 

@@ -1,5 +1,6 @@
 package com.codemarathon.user.controllers;
 
+import com.codemarathon.clients.allClient.UserResponse;
 import com.codemarathon.user.constants.Role;
 import com.codemarathon.user.dto.AuthenticationResponse;
 import com.codemarathon.user.dto.AuthRequest;
@@ -51,7 +52,6 @@ public class RegisterController {
     public ResponseEntity<String> resetPasswordRequest(@RequestBody PasswordResetRequest passwordResetRequest,
                                                        HttpServletRequest request)
             throws MessagingException, UnsupportedEncodingException {
-
         String passwordResetUrl = processPasswordResetService.resetPasswordRequest(passwordResetRequest, request);
         return ResponseEntity.ok(passwordResetUrl);
     }
@@ -63,6 +63,7 @@ public class RegisterController {
         String result = processPasswordResetService.processPasswordReset(passwordResetRequest, passwordResetToken);
         return ResponseEntity.ok(result);
     }
+
 
 
 

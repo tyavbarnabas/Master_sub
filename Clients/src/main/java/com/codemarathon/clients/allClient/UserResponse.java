@@ -1,5 +1,6 @@
 package com.codemarathon.clients.allClient;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 @Getter
@@ -8,7 +9,10 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class UserResponse {
+    @JsonProperty("responseCode")
     private String responseCode;
+    @JsonProperty("message")
     private String message;
+    @JsonProperty("details")
     private Object details;
 }

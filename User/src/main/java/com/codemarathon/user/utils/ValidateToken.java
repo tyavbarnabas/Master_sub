@@ -1,15 +1,10 @@
 package com.codemarathon.user.utils;
 
 import com.codemarathon.user.event.VerificationToken;
-import com.codemarathon.user.exceptions.PasswordResetTokenNotFoundException;
 import com.codemarathon.user.model.User;
-import com.codemarathon.user.password.PasswordResetToken;
-import com.codemarathon.user.password.PasswordResetTokenRepository;
-import com.codemarathon.user.repository.UserRepository;
 import com.codemarathon.user.repository.VerificationTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.internal.bytebuddy.implementation.bytecode.Throw;
 import org.springframework.stereotype.Component;
 
 import java.util.Calendar;
