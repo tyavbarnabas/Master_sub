@@ -1,4 +1,4 @@
-package com.codemarathon.clients.allClient;
+package com.codemarathon.clients.allClient.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;

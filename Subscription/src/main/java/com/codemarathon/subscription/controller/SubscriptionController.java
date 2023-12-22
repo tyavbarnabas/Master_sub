@@ -1,9 +1,13 @@
 package com.codemarathon.subscription.controller;
 
-import com.codemarathon.clients.allClient.GetUserByIdDto;
-import com.codemarathon.clients.allClient.UserResponse;
+import com.codemarathon.clients.allClient.dto.GetUserByIdResponse;
+import com.codemarathon.product.dto.GetPlanResponse;
+import com.codemarathon.product.dto.ProductResponse;
 import com.codemarathon.subscription.dto.BankTransferRequest;
 import com.codemarathon.subscription.dto.BankTransferResponse;
+import com.codemarathon.subscription.dto.PlanCostResponse;
+import com.codemarathon.subscription.dto.subDtos.ProductCheckResponse;
+import com.codemarathon.subscription.dto.subDtos.SubscriptionRequest;
 import com.codemarathon.subscription.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,10 +31,22 @@ public class SubscriptionController {
 
 
     @GetMapping("/check/{id}")
-    public GetUserByIdDto checkUserAuthentication(@PathVariable("id") Long userId) {
+    public GetUserByIdResponse checkUserAuthentication(@PathVariable("id") Long userId) {
         log.info("entering check user authentication controller...");
         return subscriptionService.checkUserAuthentication(userId);
     }
 
+    @GetMapping("/check/{productCode}/{planId}")
+    public ProductCheckResponse checkProductAndPlanExistence(@PathVariable("productCode") String productCode,
+                                                        @PathVariable("planId") Long planId) {
+        log.info("entering check user authentication controller...");
+        return subscriptionService.checkProductAndPlanExistence(productCode,planId);
+    }
+
+    @PostMapping("/calculate-cost/plan")
+    public PlanCostResponse calculateTheCostPlan(@RequestBody SubscriptionRequest request){
+        log.info("subscription request: {}", request);
+        return subscriptionService.calculateTheCostPlan(request);
+    }
 
 }

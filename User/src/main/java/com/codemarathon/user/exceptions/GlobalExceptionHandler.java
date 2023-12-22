@@ -1,7 +1,7 @@
 package com.codemarathon.user.exceptions;
 
-import com.codemarathon.clients.allClient.ProductResponse;
-import com.codemarathon.clients.allClient.UserResponse;
+import com.codemarathon.clients.allClient.dto.ProductResponse;
+import com.codemarathon.clients.allClient.dto.UserResponse;
 import com.codemarathon.user.constants.GeneralResponseEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

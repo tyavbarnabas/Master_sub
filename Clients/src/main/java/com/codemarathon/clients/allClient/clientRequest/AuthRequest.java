@@ -1,4 +1,4 @@
-package com.codemarathon.clients.allClient;
+package com.codemarathon.clients.allClient.clientRequest;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

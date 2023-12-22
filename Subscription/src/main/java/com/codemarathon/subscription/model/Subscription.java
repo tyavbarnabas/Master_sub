@@ -21,6 +21,7 @@ public class Subscription {
     private Long productId;
     private Long planId;
     private String currency;
+    private Long duration;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 

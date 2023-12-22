@@ -1,9 +1,9 @@
 package com.codemarathon.user.serviceImpl;
 
-import com.codemarathon.clients.allClient.GetUserByIdDto;
-import com.codemarathon.clients.allClient.NotificationClient;
-import com.codemarathon.clients.allClient.ProductClient;
-import com.codemarathon.clients.allClient.ProductResponse;
+import com.codemarathon.clients.allClient.dto.GetUserByIdResponse;
+import com.codemarathon.clients.allClient.client.NotificationClient;
+import com.codemarathon.clients.allClient.client.ProductClient;
+import com.codemarathon.clients.allClient.dto.ProductResponse;
 import com.codemarathon.notification.dto.NotificationRequest;
 import com.codemarathon.notification.dto.NotificationResponse;
 import com.codemarathon.user.config.jwtConfig.JwtService;
@@ -206,7 +206,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public GetUserByIdDto getUserById(Long id){
+    public GetUserByIdResponse getUserById(Long id){
 
         Optional<User> user = userRepository.findById(id);
         log.info("user : {}",user);
@@ -216,7 +216,7 @@ public class UserServiceImpl implements UserService {
             throw new UsersNotFoundException("user not found");
         }
 
-        return GetUserByIdDto.builder()
+        return GetUserByIdResponse.builder()
                 .id(user.get().getId())
                 .subscriptionCode(user.get().getSubscriptionCode())
                 .firstName(user.get().getFirstName())

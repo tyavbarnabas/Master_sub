@@ -1,7 +1,9 @@
 package com.codemarathon.product.controller;
 
-import com.codemarathon.clients.allClient.ProductResponse;
+
+import com.codemarathon.product.dto.GetPlanResponse;
 import com.codemarathon.product.dto.ProductRequest;
+import com.codemarathon.product.dto.ProductResponse;
 import com.codemarathon.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,12 +26,12 @@ public class ProductController {
     }
 
     @GetMapping("/product/{productId}/package/{packageId}")
-    public ProductResponse getPackageByNameForProduct(@PathVariable("productId") String productId, @PathVariable("packageId") Long packageId){
+    public GetPlanResponse getPackageForProduct(@PathVariable("productId") String productId, @PathVariable("packageId") Long packageId){
         return productService.getPlanForProduct(productId,packageId);
     }
 
-    @GetMapping("/product/{productId}")
-    public ProductResponse getAllPackagesByNameForProduct(@PathVariable("productId") String productCode){
+    @GetMapping("/packages/{productId}")
+    public ProductResponse getAllPackagesForProduct(@PathVariable("productId") String productCode){
         return productService.getAllPlansForProduct(productCode);
 
     }
@@ -45,8 +47,13 @@ public class ProductController {
         productService.deleteProduct(productId);
     }
 
-    @GetMapping("/{product-code}")
+    @GetMapping("product-by-code/{product-code}")
     public ProductResponse getProductByCode(@PathVariable("product-code") String productCode){
         return productService.getProductByCode(productCode);
+    }
+
+    @GetMapping("/product-by-id/{productId}")
+    public ProductResponse getProductById(@PathVariable("productId") Long productId){
+        return productService.getProductById(productId);
     }
 }

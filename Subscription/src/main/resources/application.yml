@@ -25,6 +25,7 @@ Spring:
 master:
   sub:
     bank:
+     userServiceBaseUrl: http://localhost:9777/api/v1/users/generateToken/
      secret:
        key: ${SECRET_KEY}
      transfer:

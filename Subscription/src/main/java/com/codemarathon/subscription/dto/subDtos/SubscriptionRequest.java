@@ -10,13 +10,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @ToString
 public class SubscriptionRequest {
-
-    private Long id;
     private Long userId;
     private Long productId;
+    private String interval;
     private Long planId;
+    private Long duration;
     private String currency;
     private LocalDateTime startDate;
-    private LocalDateTime endDate;
-
 }

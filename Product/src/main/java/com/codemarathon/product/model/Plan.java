@@ -6,8 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 
 @Entity
 @Getter
@@ -16,18 +14,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Plan {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(name = "plan_seq",sequenceName = "plan_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "plan_seq")
     private Long Id;
     private String packageName;
     private String interval;
-    private int duration;
     private String productCode;
     private double amount;
     private String currency;
     private String packageDescription;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "product_id")
-    private Product product;
+
+
 }

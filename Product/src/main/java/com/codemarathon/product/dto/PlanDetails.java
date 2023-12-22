@@ -1,21 +1,23 @@
 package com.codemarathon.product.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
+
 
 @Getter
 @Setter
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class PlanRequest {
+@Builder
+public class PlanDetails {
 
-    private String productId;
-    private String planName;
+    private Long Id;
+    private String packageName;
     private String interval;
     private String productCode;
     private double amount;
     private String currency;
     private String packageDescription;
+
 }

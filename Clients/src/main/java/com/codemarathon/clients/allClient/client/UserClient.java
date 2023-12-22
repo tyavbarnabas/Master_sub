@@ -1,8 +1,11 @@
-package com.codemarathon.clients.allClient;
+package com.codemarathon.clients.allClient.client;
 
 
 
 
+import com.codemarathon.clients.allClient.clientRequest.AuthRequest;
+import com.codemarathon.clients.allClient.dto.AuthenticationResponse;
+import com.codemarathon.clients.allClient.dto.UserResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

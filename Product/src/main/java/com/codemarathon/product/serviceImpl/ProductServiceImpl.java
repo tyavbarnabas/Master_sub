@@ -1,8 +1,11 @@
 package com.codemarathon.product.serviceImpl;
 
-import com.codemarathon.clients.allClient.ProductResponse;
+
 import com.codemarathon.product.constants.GeneralResponseEnum;
+import com.codemarathon.product.dto.GetPlanResponse;
+import com.codemarathon.product.dto.PlanDetails;
 import com.codemarathon.product.dto.ProductRequest;
+import com.codemarathon.product.dto.ProductResponse;
 import com.codemarathon.product.exception.PackageNotFoundException;
 import com.codemarathon.product.exception.ProductAlreadyExistException;
 import com.codemarathon.product.exception.ProductNotFoundException;
@@ -60,9 +63,10 @@ public class ProductServiceImpl implements ProductService {
             productPlan.setProductCode(productCode);
             productPlan.setAmount(planRequest.getAmount());
             productPlan.setPackageName(planRequest.getPackageName());
+            productPlan.setCurrency(planRequest.getCurrency());
             productPlan.setPackageDescription(planRequest.getPackageDescription());
             productPlan.setInterval(planRequest.getInterval());
-            productPlan.setDuration(planRequest.getDuration());
+
 
             plans.add(productPlan);
         }
@@ -82,17 +86,28 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductResponse getPlanForProduct(String productId, Long planId) {
+    public GetPlanResponse getPlanForProduct(String productId, Long planId) {
 
         Plan packages = packageRepository.findByProductCodeAndId(productId,planId);
 
         if (packages == null) {
             throw new PackageNotFoundException("package not found");
         }
-        return ProductResponse.builder()
+
+        PlanDetails planDetails = new PlanDetails();
+
+        planDetails.setId(packages.getId());
+        planDetails.setPackageName(packages.getPackageName());
+        planDetails.setProductCode(packages.getProductCode());
+        planDetails.setInterval(packages.getInterval());
+        planDetails.setAmount(packages.getAmount());
+        planDetails.setCurrency(packages.getCurrency());
+        planDetails.setPackageDescription(packages.getPackageDescription());
+
+        return GetPlanResponse.builder()
                 .responseCode(GeneralResponseEnum.SUCCESS.getCode())
                 .message(GeneralResponseEnum.SUCCESS.getMessage())
-                .details(packages)
+                .planDetails(planDetails)
                 .build();
     }
 
@@ -139,24 +154,42 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductResponse getProductByCode(String productCode){
+    public ProductResponse getProductByCode(String productCode) {
+        Optional<Product> productOptional = productRepository.findByProductCode(productCode);
 
-        Optional<Product> product = productRepository.findByProductCode(productCode);
-        log.info("product found: {}",product);
-
-        if (product.isEmpty()){
-
+        if (productOptional.isEmpty()) {
             throw new ProductNotFoundException("No product found");
         }
 
-        return ProductResponse.builder()
+        Product product = productOptional.get();
 
+        return ProductResponse.builder()
                 .responseCode(GeneralResponseEnum.SUCCESS.getCode())
                 .message(GeneralResponseEnum.SUCCESS.getMessage())
                 .details(product)
                 .build();
     }
 
+
+    @Override
+    public ProductResponse getProductById(Long productId){
+
+        Optional<Product> productById = productRepository.findById(productId);
+        log.info("product gotten by Id: {}", productById);
+
+        if(productById.isEmpty()){
+            throw new ProductNotFoundException("Product Not found");
+        }
+
+        Product product = productById.get();
+
+        return ProductResponse.builder()
+                .responseCode(GeneralResponseEnum.SUCCESS.getCode())
+                .message(GeneralResponseEnum.SUCCESS.getMessage())
+                .details(product)
+                .build();
+
+    }
 
 
 

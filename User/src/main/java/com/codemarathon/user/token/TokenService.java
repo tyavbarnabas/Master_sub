@@ -22,27 +22,26 @@ public class TokenService {
         List<Token> validTokens = tokenRepository.findAllValidTokenByUser(userId);
         log.info("valid token for User : {}",validTokens);
 
-        // Example: Choose the first non-expired and non-revoked token
         Optional<Token> firstValidToken = validTokens.stream().findFirst();
         log.info("first non expired token: {}", firstValidToken);
 
-        // If a valid token is found, return it. Otherwise, generate a new one.
+
         return firstValidToken.map(Token::getToken)
                 .orElseGet(() -> generateAndSaveNewToken(userId));
     }
 
     private String generateAndSaveNewToken(Long userId) {
-        // Generate a new token
+
         String newToken = jwtService.generateTokenForUser(userId);
         log.info("newly generated token: {}", newToken);
 
-        // Save the new token to the database
+
         Token tokenEntity = Token.builder()
                 .token(newToken)
-                .tokenType(TokenType.BEARER)  // Set the appropriate token type
+                .tokenType(TokenType.BEARER)
                 .expired(false)
                 .revoked(false)
-                .user(User.builder().id(userId).build())  // Assuming you have a User entity
+                .user(User.builder().id(userId).build())
                 .build();
         tokenRepository.save(tokenEntity);
 

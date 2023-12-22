@@ -1,5 +1,6 @@
 package com.codemarathon.product.repository;
 
+import com.codemarathon.product.dto.PlanDetails;
 import com.codemarathon.product.model.Plan;
 import org.springframework.data.jpa.repository.JpaRepository;
 

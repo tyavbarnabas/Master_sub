@@ -1,25 +1,32 @@
 package com.codemarathon.subscription.serviceImpl;
 
-import com.codemarathon.clients.allClient.*;
+import com.codemarathon.clients.allClient.client.ProductClient;
+import com.codemarathon.clients.allClient.dto.GetUserByIdResponse;
+import com.codemarathon.notification.constants.GeneralResponseEnum;
+import com.codemarathon.product.dto.GetPlanResponse;
+import com.codemarathon.product.dto.PlanDetails;
 import com.codemarathon.product.exception.ProductNotFoundException;
+import com.codemarathon.product.model.Plan;
 import com.codemarathon.product.model.Product;
 import com.codemarathon.subscription.dto.*;
+import com.codemarathon.subscription.dto.subDtos.ProductCheckResponse;
+import com.codemarathon.subscription.dto.subDtos.SubscriptionRequest;
+import com.codemarathon.subscription.dto.subDtos.SubscriptionResponse;
 import com.codemarathon.subscription.exception.PlanNotFoundException;
+import com.codemarathon.subscription.exception.UnsupportedIntervalException;
 import com.codemarathon.subscription.exception.UserNotFoundException;
+import com.codemarathon.subscription.model.Subscription;
+import com.codemarathon.subscription.repository.SubscriptionRepository;
 import com.codemarathon.subscription.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
-
-import java.nio.file.attribute.UserPrincipalNotFoundException;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -30,13 +37,15 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     private String bank_transfer_Url;
     @Value("${master.sub.bank.secret.key}")
     private String secret_key;
-
     private final WebClient webClient;
-
     private final ProductClient productClient;
-
     @Value("${master.sub.bank.getUserById_URL}")
     private String getUserById_URL;
+
+    @Value("${master.sub.bank.userServiceBaseUrl}")
+    private String userServiceBaseUrl;
+
+    private final SubscriptionRepository subscriptionRepository;
 
 
 
@@ -53,31 +62,29 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
         log.info("Bank response: {}", response);
 
-
-
         return response;
 
     }
 
 
     @Override
-    public GetUserByIdDto checkUserAuthentication(Long userId) {
+    public GetUserByIdResponse checkUserAuthentication(Long userId) {
+
+
+        String jwtToken = getJwtTokenFromUserService(userId);
 
         String uri = getUserById_URL + "/" + userId;
-        String jwtToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0eWF2YmFybmFiYXMyQGdtYWlsLmNvbSIsImlhdCI6MTcwMjI5NzExOCwiZXhwIjoxNzAyMjk4OTE4fQ.MdZoxqs0XQoFcf6um5zX71JEEBhpusTgNRYmMwyZuxU";
 
-
-        GetUserByIdDto response = webClient
+        GetUserByIdResponse response = webClient
                 .get()
                 .uri(uri)
                 .header("Authorization", "Bearer " + jwtToken)
                 .retrieve()
-                .bodyToMono(GetUserByIdDto.class)
+                .bodyToMono(GetUserByIdResponse.class)
                 .block();
 
-        if(response == null){
-
-            throw new UserNotFoundException("user not found");
+        if (response == null) {
+            throw new UserNotFoundException("User not found");
         }
 
         return response;
@@ -85,51 +92,188 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
 
+    private String getJwtTokenFromUserService(Long userId) {
+
+        return webClient
+                .get()
+                .uri(userServiceBaseUrl + userId)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+    }
+
 
     @Override
-    public void checkProductAndPlanExistence(String productCode, Long planId) {
+    public ProductCheckResponse checkProductAndPlanExistence(String productCode, Long planId) {
 
-        ProductResponse productResponse = productClient.getProductByCode(productCode);
-        log.info("product response : {}", productResponse);
+        String baseURL = "http://localhost:9776/api/v1/product/product-by-code"+ "/" + productCode;
 
-        if (productResponse.getResponseCode().equals("000")) {
+        ProductCheckResponse productResponse  = webClient
+                .get()
+                .uri(baseURL)
+                .retrieve()
+                .bodyToMono(ProductCheckResponse.class)
+                .block();
+        assert productResponse != null;
+        log.info("product response : {}", productResponse.getDetails());
 
-            Product product = (Product) productResponse.getDetails();
-            log.info("product : {}", product);
+        String responseCode = productResponse.getResponseCode();
 
-            if (isPlanExistsForProduct(product, planId)) {
+        if (responseCode.equals("000")) {
 
+            Product productDetails = productResponse.getDetails();
+
+            log.info("product : {}", productDetails);
+
+            log.info("Plans in the product response: {}", productDetails.getPlans());
+
+
+            if (isPlanExistsForProduct(productDetails, planId)) {
+
+                PlanDetails planDetails = extractPlanDetails(productDetails, planId);
                 log.info("The plan with ID {} exists for the product with code {}", planId, productCode);
 
+                return ProductCheckResponse.builder()
+                        .responseCode("000")
+                        .message("Success")
+                        .planDetails(planDetails)
+                        .build();
             } else {
 
                 log.error("The plan with ID {} does not exist for the product with code {}", planId, productCode);
                 throw new PlanNotFoundException("The selected plan does not exist for the product");
             }
-
         } else {
 
             log.error("Product with code {} does not exist", productCode);
             throw new ProductNotFoundException("The selected product does not exist");
         }
+    }
 
+
+    private boolean isPlanExistsForProduct(Product product, Long planId) {
+        return product.getPlans().stream().peek(plan -> log.info("Plan details: {}", plan))
+                .anyMatch(plan -> plan.getId().equals(planId));
+    }
+
+    private PlanDetails extractPlanDetails(Product product, Long planId) {
+        List<Plan> plans = product.getPlans();
+
+
+        Optional<Plan> foundPlan = plans.stream()
+                .filter(plan -> plan.getId().equals(planId))
+                .findFirst();
+
+
+        if (foundPlan.isPresent()) {
+            Plan plan = foundPlan.get();
+            return PlanDetails.builder()
+                    .Id(plan.getId())
+                    .packageName(plan.getPackageName())
+                    .productCode(plan.getProductCode())
+                    .amount(plan.getAmount())
+                    .packageDescription(plan.getPackageDescription())
+                    .currency(plan.getCurrency())
+                    .interval(plan.getInterval())
+                    .build();
+        } else {
+
+            throw new PlanNotFoundException("Plan with ID " + planId + " not found");
+        }
     }
 
 
 
+    @Override
+    public PlanCostResponse calculateTheCostPlan(SubscriptionRequest subscriptionRequest){
 
 
-//    public Subscription createSubscription(Long userId,String productCode, Long planId) {
+        String baseUrl = "http://localhost:9776/api/v1/product/product/"+ subscriptionRequest.getProductId() + "/package/" +
+                subscriptionRequest.getPlanId();
+
+
+        GetPlanResponse planResponse  = webClient
+                .get()
+                .uri(baseUrl)
+                .retrieve()
+                .bodyToMono(GetPlanResponse.class)
+                .block();
+
+
+        assert planResponse != null;
+        String responseCode = planResponse.getResponseCode();
+
+        if(!responseCode.equals("000")) {
+
+            throw new PlanNotFoundException("plan not found");
+        }
+        PlanDetails planDetails = planResponse.getPlanDetails();
+
+        double totalAmount = planDetails.getAmount() * subscriptionRequest.getDuration();
+
+        return PlanCostResponse.builder()
+                .responseCode("000")
+                .message("success")
+                .cost(totalAmount)
+                .build();
+
+    }
+
+
+    public SubscriptionResponse createSubscription(SubscriptionRequest subscriptionRequest) {
+        Subscription subscription = new Subscription();
+        subscription.setUserId(subscriptionRequest.getUserId());
+        subscription.setPlanId(subscriptionRequest.getPlanId());
+        subscription.setProductId(subscriptionRequest.getProductId());
+        subscription.setCurrency(subscriptionRequest.getCurrency());
+        subscription.setDuration(subscriptionRequest.getDuration());
+
+
+        LocalDateTime endDate = calculateEndDate(subscriptionRequest.getStartDate(), subscriptionRequest.getDuration(), subscriptionRequest.getInterval());
+        subscription.setEndDate(endDate);
+
+
+        return SubscriptionResponse.builder()
+                .responseCode(GeneralResponseEnum.SUCCESS.getCode())
+                .message(GeneralResponseEnum.SUCCESS.getMessage())
+                .subscriptionDetails(subscription)
+                .build();
+    }
+
+    private LocalDateTime calculateEndDate(LocalDateTime startDate, Long duration, String interval) {
+        ChronoUnit chronoUnit = getChronoUnit(interval);
+        return startDate.plus(duration, chronoUnit);
+    }
+
+    private ChronoUnit getChronoUnit(String interval) {
+        switch (interval.toLowerCase()) {
+            case "daily":
+                return ChronoUnit.DAYS;
+            case "weekly":
+                return ChronoUnit.WEEKS;
+            case "monthly":
+                return ChronoUnit.MONTHS;
+            case "yearly":
+                return ChronoUnit.YEARS;
+            default:
+                throw new UnsupportedIntervalException("Unsupported interval: " + interval);
+        }
+    }
+
+
+
+//    public Subscription createSubscription(Long userId, String productCode, Long planId) {
 //
 //        // Check user authentication
-//        UserResponse userResponse = userClient.authenticateUserById(userId);
+//        GetUserByIdResponse userResponse = checkUserAuthentication(userId);
+//
 //
 //        if (!userResponse.getResponseCode().equals("000")) {
 //
 //            throw new UserAuthenticationException("User authentication failed");
-//        }
-//
-//        // Check if the product and plan exist
+ //       }
+
+        // Check if the product and plan exist
 //        ProductResponse productResponse = productClient.getProductByCode(productCode);
 //
 //        if (!productResponse.getResponseCode().equals("000")) {
@@ -152,6 +296,15 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 //        LocalDateTime endDate = startDate.plusMonths(planDuration); // Adjust based on plan interval
 //        double monthlyCost = selectedPlan.getAmount();
 //        double totalCost = monthlyCost * planDuration;
+
+
+//    Optional<Subscription> existingSub = subscriptionRepository.findById(subscriptionRequest.getId());
+//        log.info("Already Existing Subscription: {}", existingSub);
+//
+//        if(existingSub.isPresent()){
+//
+//        throw new SubscriptionAlreadyExistException("subscription Already Exist");
+//    }
 //
 //        // Create and return a Subscription object
 //        Subscription subscription = new Subscription();
@@ -165,28 +318,12 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 //
 //        return subscription;
 //    }
-
-
-
-    private boolean isPlanExistsForProduct(Product product, Long planId) {
-        return product.getPlans().stream().anyMatch(plan -> plan.getId().equals(planId));
-    }
-
-
-//    private String getNewJwtToken() {
-//        // Implement your logic to obtain a new JWT token dynamically
-//        // This might involve calling an authentication service or refreshing the token
 //
-//        // Example: Assume a method refreshToken() is available in JwtService
-//        try {
-//            // Store the current token for refresh
-//            existingToken = jwtService.generateToken(userDetails);  // Assuming userDetails is available
-//            return existingToken;
-//        } catch (Exception e) {
-//            log.error("Error refreshing JWT token: {}", e.getMessage());
-//            throw new RuntimeException("Error refreshing JWT token", e);
-//        }
-//    }
+
+
+
+
+
 
 
 

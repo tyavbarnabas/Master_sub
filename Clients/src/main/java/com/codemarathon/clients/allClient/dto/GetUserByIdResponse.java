@@ -1,4 +1,4 @@
-package com.codemarathon.clients.allClient;
+package com.codemarathon.clients.allClient.dto;
 
 
 import lombok.*;
@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @ToString
-public class GetUserByIdDto {
+public class GetUserByIdResponse {
 
     private Long id;
     private String firstName;

@@ -1,4 +1,4 @@
-package com.codemarathon.clients.allClient;
+package com.codemarathon.clients.allClient.client;
 
 import com.codemarathon.notification.dto.NotificationRequest;
 import com.codemarathon.notification.dto.NotificationResponse;

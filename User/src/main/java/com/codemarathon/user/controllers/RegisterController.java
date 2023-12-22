@@ -1,6 +1,5 @@
 package com.codemarathon.user.controllers;
 
-import com.codemarathon.clients.allClient.UserResponse;
 import com.codemarathon.user.constants.Role;
 import com.codemarathon.user.dto.AuthenticationResponse;
 import com.codemarathon.user.dto.AuthRequest;
@@ -8,6 +7,7 @@ import com.codemarathon.user.dto.RegisterRequest;
 import com.codemarathon.user.password.PasswordResetRequest;
 import com.codemarathon.user.password.ProcessPasswordResetService;
 import com.codemarathon.user.service.UserService;
+import com.codemarathon.user.token.TokenService;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +25,8 @@ import java.io.UnsupportedEncodingException;
 public class RegisterController {
     private final UserService userService;
     private final ProcessPasswordResetService processPasswordResetService;
+
+    private final TokenService tokenService;
 
 
     @PostMapping("/register")
@@ -64,6 +66,13 @@ public class RegisterController {
         return ResponseEntity.ok(result);
     }
 
+
+
+    @GetMapping("/generateToken/{id}")
+    public ResponseEntity<String> generateToken(@PathVariable("id") Long userId) {
+        String jwtToken = tokenService.getValidTokenForUser(userId);
+        return ResponseEntity.ok(jwtToken);
+    }
 
 
 

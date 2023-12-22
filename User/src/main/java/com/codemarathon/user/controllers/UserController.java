@@ -1,7 +1,7 @@
 package com.codemarathon.user.controllers;
 
-import com.codemarathon.clients.allClient.GetUserByIdDto;
-import com.codemarathon.clients.allClient.ProductResponse;
+import com.codemarathon.clients.allClient.dto.GetUserByIdResponse;
+import com.codemarathon.clients.allClient.dto.ProductResponse;
 import com.codemarathon.user.config.jwtConfig.JwtService;
 import com.codemarathon.user.dto.RegisterRequest;
 import com.codemarathon.user.service.UserService;
@@ -35,7 +35,7 @@ public class UserController {
     }
 
     @GetMapping("/user/{id}")
-    public GetUserByIdDto getUserById(@PathVariable("id") Long id){
+    public GetUserByIdResponse getUserById(@PathVariable("id") Long id){
         log.info("entering the get user controller...");
         return userService.getUserById(id);
     }
