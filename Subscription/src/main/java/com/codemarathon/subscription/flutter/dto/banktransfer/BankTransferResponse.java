@@ -1,4 +1,5 @@
-package com.codemarathon.subscription.dto;
+package com.codemarathon.subscription.flutter.dto.banktransfer;
+
 
 import lombok.*;
 
@@ -11,6 +12,6 @@ import lombok.*;
 public class BankTransferResponse {
     private String status;
     private String message;
-    private Meta meta;
+    private BankTransferMeta meta;
 
 }

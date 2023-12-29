@@ -1,11 +1,12 @@
-package com.codemarathon.subscription.dto;
+package com.codemarathon.subscription.flutter.dto.banktransfer;
 
-
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
-@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 public class Authorization {
@@ -13,8 +14,8 @@ public class Authorization {
     private String transfer_reference;
     private String transfer_account;
     private String transfer_bank;
-    private long account_expiration;
+    private String account_expiration;
     private String transfer_note;
-    private String transfer_amount;
+    private double transfer_amount;
     private String mode;
 }

@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @ToString
 public class SubscriptionRequest {
+
     private Long userId;
     private Long productId;
     private String interval;

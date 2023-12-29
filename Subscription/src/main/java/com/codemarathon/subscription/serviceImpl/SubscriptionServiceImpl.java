@@ -1,14 +1,21 @@
 package com.codemarathon.subscription.serviceImpl;
 
-import com.codemarathon.clients.allClient.client.ProductClient;
+import com.codemarathon.clients.allClient.client.NotificationClient;
 import com.codemarathon.clients.allClient.dto.GetUserByIdResponse;
 import com.codemarathon.notification.constants.GeneralResponseEnum;
+import com.codemarathon.notification.dto.InitiateTransferNotificationRequest;
+import com.codemarathon.notification.dto.NotificationResponse;
 import com.codemarathon.product.dto.GetPlanResponse;
 import com.codemarathon.product.dto.PlanDetails;
 import com.codemarathon.product.exception.ProductNotFoundException;
 import com.codemarathon.product.model.Plan;
 import com.codemarathon.product.model.Product;
 import com.codemarathon.subscription.dto.*;
+import com.codemarathon.subscription.flutter.dto.banktransfer.BankTransferRequest;
+import com.codemarathon.subscription.flutter.dto.banktransfer.BankTransferResponse;
+import com.codemarathon.subscription.flutter.dto.subaccount.GetAllAccountsResponse;
+import com.codemarathon.subscription.flutter.dto.subaccount.Subaccount;
+import com.codemarathon.subscription.flutter.dto.subaccount.SubaccountResponse;
 import com.codemarathon.subscription.dto.subDtos.ProductCheckResponse;
 import com.codemarathon.subscription.dto.subDtos.SubscriptionRequest;
 import com.codemarathon.subscription.dto.subDtos.SubscriptionResponse;
@@ -38,7 +45,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     @Value("${master.sub.bank.secret.key}")
     private String secret_key;
     private final WebClient webClient;
-    private final ProductClient productClient;
+//    private final ProductClient productClient;
     @Value("${master.sub.bank.getUserById_URL}")
     private String getUserById_URL;
 
@@ -46,6 +53,8 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     private String userServiceBaseUrl;
 
     private final SubscriptionRepository subscriptionRepository;
+
+    private final NotificationClient notificationClient;
 
 
 
@@ -62,10 +71,57 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
         log.info("Bank response: {}", response);
 
+
+
+        NotificationResponse notificationResponse = notificationClient.sendInitiateTransactionNotification(
+                new InitiateTransferNotificationRequest(
+                        bankTransferRequest.getEmail(),
+                        String.format("Hi %s, follow this link to complete your payment...")
+                )
+        );
+
+        String responseCode = notificationResponse.getResponseCode();
+        log.info("notification response code: {}",responseCode);
+
         return response;
+    }
+
+
+    @Override
+    public SubaccountResponse createSubAccount(Subaccount subAccountRequest) {
+        String create_sub_account_Url = "https://api.flutterwave.com/v3/subaccounts";
+
+        SubaccountResponse subaccountResponse = webClient
+                .post()
+                .uri(create_sub_account_Url)
+                .bodyValue(subAccountRequest)
+                .header("Authorization", "Bearer " + secret_key)
+                .retrieve()
+                .bodyToMono(SubaccountResponse.class)
+                .block();
+
+        log.info("Bank response: {}", subaccountResponse);
+
+        return subaccountResponse;
 
     }
 
+    public GetAllAccountsResponse getAllSubAccounts(String accountBank, String accountNumber, String bankName) {
+        String getSubAccountsUrl = "https://api.flutterwave.com/v3/subaccounts";
+
+        return webClient
+                .get()
+                .uri(uriBuilder -> uriBuilder
+                        .path(getSubAccountsUrl)
+                        .queryParam("account_bank", accountBank)
+                        .queryParam("account_number", accountNumber)
+                        .queryParam("bank_name", bankName)
+                        .build())
+                .header("Authorization", "Bearer " + secret_key)
+                .retrieve()
+                .bodyToMono(GetAllAccountsResponse.class)
+                .block();
+    }
 
     @Override
     public GetUserByIdResponse checkUserAuthentication(Long userId) {
@@ -220,12 +276,14 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
 
+    @Override
     public SubscriptionResponse createSubscription(SubscriptionRequest subscriptionRequest) {
         Subscription subscription = new Subscription();
         subscription.setUserId(subscriptionRequest.getUserId());
         subscription.setPlanId(subscriptionRequest.getPlanId());
         subscription.setProductId(subscriptionRequest.getProductId());
         subscription.setCurrency(subscriptionRequest.getCurrency());
+        subscription.setStartDate(subscriptionRequest.getStartDate());
         subscription.setDuration(subscriptionRequest.getDuration());
 
 

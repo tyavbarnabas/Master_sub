@@ -1,6 +1,7 @@
 package com.codemarathon.subscription.model;
 
 
+import com.codemarathon.subscription.constant.SubscriptionStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,5 +26,7 @@ public class Subscription {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
+    @Enumerated(EnumType.STRING)
+    private SubscriptionStatus status;
 }
 

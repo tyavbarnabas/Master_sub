@@ -1,5 +1,6 @@
 package com.codemarathon.notification.controller;
 
+import com.codemarathon.notification.dto.InitiateTransferNotificationRequest;
 import com.codemarathon.notification.dto.NotificationRequest;
 import com.codemarathon.notification.dto.NotificationResponse;
 import com.codemarathon.notification.service.NotificationService;
@@ -23,6 +24,15 @@ public class NotificationController {
     public NotificationResponse sendNotification(@RequestBody NotificationRequest notificationRequest){
         log.info("in the notification controller...");
         return notificationService.sendNotification(notificationRequest);
+
+    }
+
+
+    @PostMapping("/send-intiate-transaction/notification")
+    public NotificationResponse sendInitiateTransactionNotification(@RequestBody InitiateTransferNotificationRequest
+                                                                    request){
+        log.info("in the notification controller...");
+        return notificationService.sendInitiateTransactionNotification(request);
 
     }
 }

@@ -1,6 +1,7 @@
 package com.codemarathon.notification.serviceImpl;
 
 import com.codemarathon.notification.constants.GeneralResponseEnum;
+import com.codemarathon.notification.dto.InitiateTransferNotificationRequest;
 import com.codemarathon.notification.dto.NotificationRequest;
 import com.codemarathon.notification.dto.NotificationResponse;
 import com.codemarathon.notification.model.Notification;
@@ -32,6 +33,20 @@ public class NotificationServiceImpl implements NotificationService {
                         .sentAt(LocalDateTime.now())
                         .build()
         );
+        return NotificationResponse.builder()
+                .responseCode(GeneralResponseEnum.SUCCESS.getCode())
+                .responseMessage(GeneralResponseEnum.SUCCESS.getMessage())
+                .build();
+    }
+
+    @Override
+    public NotificationResponse sendInitiateTransactionNotification(InitiateTransferNotificationRequest request) {
+        notificationRepository.save(Notification.builder()
+                        .toCustomerEmail(request.getToCustomerEmail())
+                        .sender("Master_sub")
+                        .message(request.getMessage())
+                        .sentAt(LocalDateTime.now())
+                .build());
         return NotificationResponse.builder()
                 .responseCode(GeneralResponseEnum.SUCCESS.getCode())
                 .responseMessage(GeneralResponseEnum.SUCCESS.getMessage())

@@ -1,6 +1,9 @@
-package com.codemarathon.subscription.dto;
+package com.codemarathon.subscription.flutter.dto.banktransfer;
 
+import com.codemarathon.subscription.flutter.dto.subaccount.Subaccount;
 import lombok.*;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -9,6 +12,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BankTransferRequest {
+
     private String tx_ref;
     private String amount;
     private String email;
@@ -18,6 +22,7 @@ public class BankTransferRequest {
     private String device_fingerprint;
     private String narration;
     private boolean is_permanent;
+    private List<Subaccount> subaccounts;
 
 
 }

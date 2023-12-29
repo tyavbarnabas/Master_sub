@@ -1,13 +1,15 @@
 package com.codemarathon.subscription.controller;
 
 import com.codemarathon.clients.allClient.dto.GetUserByIdResponse;
-import com.codemarathon.product.dto.GetPlanResponse;
-import com.codemarathon.product.dto.ProductResponse;
-import com.codemarathon.subscription.dto.BankTransferRequest;
-import com.codemarathon.subscription.dto.BankTransferResponse;
+import com.codemarathon.subscription.flutter.dto.banktransfer.BankTransferRequest;
+import com.codemarathon.subscription.flutter.dto.banktransfer.BankTransferResponse;
 import com.codemarathon.subscription.dto.PlanCostResponse;
+import com.codemarathon.subscription.flutter.dto.subaccount.GetAllAccountsResponse;
+import com.codemarathon.subscription.flutter.dto.subaccount.Subaccount;
+import com.codemarathon.subscription.flutter.dto.subaccount.SubaccountResponse;
 import com.codemarathon.subscription.dto.subDtos.ProductCheckResponse;
 import com.codemarathon.subscription.dto.subDtos.SubscriptionRequest;
+import com.codemarathon.subscription.dto.subDtos.SubscriptionResponse;
 import com.codemarathon.subscription.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,5 +50,27 @@ public class SubscriptionController {
         log.info("subscription request: {}", request);
         return subscriptionService.calculateTheCostPlan(request);
     }
+
+    @PostMapping("/create/subscription")
+    public SubscriptionResponse createSubscription(@RequestBody SubscriptionRequest subscriptionRequest){
+        log.info("subscription request: {} ", subscriptionRequest);
+        return  subscriptionService.createSubscription(subscriptionRequest);
+    }
+
+
+    @PostMapping("/create/subaccounts")
+    public SubaccountResponse createSubAccount(@RequestBody Subaccount subAccountRequest){
+        return  subscriptionService.createSubAccount(subAccountRequest);
+    }
+
+
+    @PostMapping("/get-all-subaccounts")
+    public GetAllAccountsResponse getAllSubAccounts(
+            @RequestParam String accountNumber,
+            @RequestParam(required = false) String accountBank,
+            @RequestParam(required = false) String bankName) {
+        return subscriptionService.getAllSubAccounts(accountBank, accountNumber, bankName);
+    }
+
 
 }
