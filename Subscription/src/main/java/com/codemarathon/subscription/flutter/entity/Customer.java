@@ -6,17 +6,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+
 @Embeddable
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class WebhookCard {
+public class Customer {
 
-    private String first_6Digits;
-    private String last_4Digits;
-    private String issuer;
-    private String country;
-    private String type;
-    private String expiry;
+    @Column(name = "id", insertable = false, updatable = false)
+    private Long id;
+    @Column(name = "fullname")
+    private String fullname;
+    private String phone_number;
+    private String email;
+    private String created_at;
 }

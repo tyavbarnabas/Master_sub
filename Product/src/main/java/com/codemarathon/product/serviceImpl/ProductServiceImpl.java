@@ -2,16 +2,16 @@ package com.codemarathon.product.serviceImpl;
 
 
 import com.codemarathon.product.constants.GeneralResponseEnum;
-import com.codemarathon.product.dto.GetPlanResponse;
-import com.codemarathon.product.dto.PlanDetails;
-import com.codemarathon.product.dto.ProductRequest;
-import com.codemarathon.product.dto.ProductResponse;
+import com.codemarathon.product.dto.*;
 import com.codemarathon.product.exception.PackageNotFoundException;
+import com.codemarathon.product.exception.ProductAccountAlreadyExistException;
 import com.codemarathon.product.exception.ProductAlreadyExistException;
 import com.codemarathon.product.exception.ProductNotFoundException;
 import com.codemarathon.product.model.Plan;
 import com.codemarathon.product.model.Product;
+import com.codemarathon.product.model.ProductAccount;
 import com.codemarathon.product.repository.PackageRepository;
+import com.codemarathon.product.repository.ProductAccountRepository;
 import com.codemarathon.product.repository.ProductRepository;
 import com.codemarathon.product.service.ProductService;
 import com.codemarathon.product.utils.ProductUtils;
@@ -31,6 +31,8 @@ public class ProductServiceImpl implements ProductService {
     private  final ProductRepository productRepository;
     private final ProductUtils productUtils;
     private final PackageRepository packageRepository;
+
+    private final ProductAccountRepository productAccountRepository;
 
 
     @Override
@@ -103,6 +105,7 @@ public class ProductServiceImpl implements ProductService {
         planDetails.setAmount(packages.getAmount());
         planDetails.setCurrency(packages.getCurrency());
         planDetails.setPackageDescription(packages.getPackageDescription());
+
 
         return GetPlanResponse.builder()
                 .responseCode(GeneralResponseEnum.SUCCESS.getCode())
@@ -191,6 +194,48 @@ public class ProductServiceImpl implements ProductService {
 
     }
 
+
+    @Override
+    public ProductAccountResponse createProductAccount(ProductAccountRequest productAccountRequest){
+
+        Optional<ProductAccount> existingProductAccount =
+                productAccountRepository.findByProductCode(productAccountRequest.getProductCode());
+        log.info("product account: {}", existingProductAccount);
+
+
+
+        if(existingProductAccount.isPresent()){
+            throw new ProductAccountAlreadyExistException(" account already exist for the product");
+        }
+
+        ProductAccount productAccount = new ProductAccount();
+
+        productAccount.setProductCode(productAccountRequest.getProductCode());
+        productAccount.setAccountBank(productAccountRequest.getAccountBank());
+        productAccount.setAccountNumber(productAccountRequest.getAccountNumber());
+        productAccount.setBusinessName(productAccountRequest.getBusinessName());
+        productAccount.setBusinessEmail(productAccountRequest.getBusinessEmail());
+        productAccount.setBusinessContact(productAccountRequest.getBusinessContact());
+        productAccount.setBusinessContactMobile(productAccountRequest.getBusinessContactMobile());
+        productAccount.setBusinessMobile(productAccountRequest.getBusinessMobile());
+        productAccount.setCountry(productAccountRequest.getCountry());
+
+        log.info("product created: {}", productAccount);
+
+
+        ProductAccount saveAccount = productAccountRepository.save(productAccount);
+        log.info("saved account : {}", saveAccount);
+
+
+
+        return ProductAccountResponse.builder()
+                .responseCode(GeneralResponseEnum.SUCCESS.getCode())
+                .message(GeneralResponseEnum.SUCCESS.getMessage())
+                .productAccount(productAccount)
+                .build();
+
+
+    }
 
 
 }

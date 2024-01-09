@@ -1,12 +1,14 @@
 package com.codemarathon.subscription.flutter.service;
 
-import com.codemarathon.subscription.flutter.dto.webhook.WebhookDataDTO;
-import com.codemarathon.subscription.flutter.entity.WebhookData;
-import com.codemarathon.subscription.flutter.entity.WebhookEventEntity;
+import com.codemarathon.product.constants.GeneralResponseEnum;
+import com.codemarathon.subscription.flutter.dto.webhook.WebhookDataRequest;
+import com.codemarathon.subscription.flutter.dto.webhook.WebhookResponse;
+import com.codemarathon.subscription.flutter.entity.WebhookEntity;
 import com.codemarathon.subscription.flutter.exception.InvalidSecretHash;
-import com.codemarathon.subscription.flutter.repository.WebhookEventRepository;
+import com.codemarathon.subscription.flutter.repository.WebhookRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -19,61 +21,42 @@ import java.util.Base64;
 public class WebhookService {
 
 
-    private final WebhookEventRepository webhookEventRepository;
+    private final WebhookRepository webhookRepository;
 
-    public WebhookEventEntity processWebhookEvent(String eventType, WebhookDataDTO payload, String signature) {
+    @Value("${master.sub.bank.flutter.secret.hash}")
+    private String staticSecretHash;
 
-        int secretHashLength = 32;
-        String secretHash = generateSecretHash(secretHashLength);
+    public WebhookResponse processWebhookEvent(WebhookDataRequest webhookDataRequest,String signature) {
 
-        log.info("Generated Secret Hash: " + secretHash);
+        if (!signature.equals(staticSecretHash)) {
 
-        if (!signature.equals(secretHash)) {
+            log.info("Generated Secret Hash: " + staticSecretHash);
             throw new InvalidSecretHash("invalid secret hash");
         }
 
-        log.info("Received webhook payload: {}", payload);
+        log.info("Received webhook payload: {}", webhookDataRequest);
 
-        WebhookEventEntity webhookEvent = new WebhookEventEntity();
-        webhookEvent.setEvent(eventType);
+        WebhookEntity webhookEvent = new WebhookEntity();
 
-        WebhookData webhookData = convertDtoToEntity(payload);
-        webhookEvent.setData(webhookData);
+        webhookEvent.setEvent(webhookDataRequest.getEvent());
+        webhookEvent.setData(webhookDataRequest.getData());
+        webhookEvent.setEvent_type(webhookDataRequest.getEventType());
+        webhookEvent.setReceived_at(LocalDateTime.now());
 
-        webhookEvent.setReceivedAt(LocalDateTime.now());
-        webhookEventRepository.save(webhookEvent);
+        webhookRepository.save(webhookEvent);
 
-        return webhookEvent;
+        return WebhookResponse.builder()
+                .responseCode(GeneralResponseEnum.SUCCESS.getCode())
+                .message(GeneralResponseEnum.SUCCESS.getMessage())
+                .event(webhookEvent.getEvent())
+                .data(webhookEvent.getData())
+                .eventType(webhookEvent.getEvent_type())
+                .receivedAt(webhookEvent.getReceived_at())
+                .build();
     }
 
-    private WebhookData convertDtoToEntity(WebhookDataDTO dto) {
-
-        WebhookData entity = new WebhookData();
-
-        entity.setId(dto.getId());
-        entity.setTx_ref(dto.getTx_ref());
-        entity.setFlw_ref(dto.getFlw_ref());
-        entity.setDevice_fingerprint(dto.getDevice_fingerprint());
-        entity.setAmount(dto.getAmount());
-        entity.setCurrency(entity.getCurrency());
-        entity.setCharged_amount(entity.getCharged_amount());
-        entity.setApp_fee(dto.getApp_fee());
-        entity.setMerchant_fee(dto.getMerchant_fee());
-        entity.setProcessor_response(dto.getProcessor_response());
-        entity.setAuth_model(dto.getAuth_model());
-        entity.setIp(dto.getIp());
-        entity.setNarration(dto.getNarration());
-        entity.setStatus(dto.getStatus());
-        entity.setPayment_type(dto.getPayment_type());
-        entity.setCreated_At(dto.getCreated_At());
-        entity.setAccount_id(dto.getAccount_id());
-
-        return entity;
-    }
-
-
-    public static String generateSecretHash(int length) {
-
+    public String generateSecretHash() {
+        int length = 32;
         SecureRandom secureRandom = new SecureRandom();
         byte[] randomBytes = new byte[length];
         secureRandom.nextBytes(randomBytes);

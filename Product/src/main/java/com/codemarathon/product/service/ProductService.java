@@ -1,9 +1,7 @@
 package com.codemarathon.product.service;
 
 
-import com.codemarathon.product.dto.GetPlanResponse;
-import com.codemarathon.product.dto.ProductRequest;
-import com.codemarathon.product.dto.ProductResponse;
+import com.codemarathon.product.dto.*;
 import com.codemarathon.product.model.Product;
 
 public interface ProductService {
@@ -20,5 +18,9 @@ public interface ProductService {
     ProductResponse getProductByCode(String productCode);
 
     ProductResponse getProductById(Long productId);
+
+    ProductAccountResponse createProductAccount(ProductAccountRequest productAccountRequest);
+
+
 
 }

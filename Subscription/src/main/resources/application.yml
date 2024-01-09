@@ -14,7 +14,7 @@ Spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -25,6 +25,9 @@ Spring:
 master:
   sub:
     bank:
+     flutter:
+      secret:
+       hash: HkeIyzeza_qs8ouj0E8YSVTO7kmmzMkeisx1lY9rVbg
      userServiceBaseUrl: http://localhost:9777/api/v1/users/generateToken/
      secret:
        key: ${SECRET_KEY}

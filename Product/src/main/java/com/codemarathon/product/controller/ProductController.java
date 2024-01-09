@@ -1,9 +1,7 @@
 package com.codemarathon.product.controller;
 
 
-import com.codemarathon.product.dto.GetPlanResponse;
-import com.codemarathon.product.dto.ProductRequest;
-import com.codemarathon.product.dto.ProductResponse;
+import com.codemarathon.product.dto.*;
 import com.codemarathon.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,5 +53,12 @@ public class ProductController {
     @GetMapping("/product-by-id/{productId}")
     public ProductResponse getProductById(@PathVariable("productId") Long productId){
         return productService.getProductById(productId);
+    }
+
+    @PostMapping("/create-product-account")
+    public ProductAccountResponse createProductAccount(@RequestBody ProductAccountRequest productAccountRequest){
+        log.info("entering the create product account ...");
+        return  productService.createProductAccount(productAccountRequest);
+
     }
 }

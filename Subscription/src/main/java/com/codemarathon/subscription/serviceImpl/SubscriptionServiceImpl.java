@@ -72,7 +72,6 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         log.info("Bank response: {}", response);
 
 
-
         NotificationResponse notificationResponse = notificationClient.sendInitiateTransactionNotification(
                 new InitiateTransferNotificationRequest(
                         bankTransferRequest.getEmail(),
@@ -329,9 +328,9 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 //        if (!userResponse.getResponseCode().equals("000")) {
 //
 //            throw new UserAuthenticationException("User authentication failed");
- //       }
-
-        // Check if the product and plan exist
+//        }
+//
+//         Check if the product and plan exist
 //        ProductResponse productResponse = productClient.getProductByCode(productCode);
 //
 //        if (!productResponse.getResponseCode().equals("000")) {
@@ -354,8 +353,8 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 //        LocalDateTime endDate = startDate.plusMonths(planDuration); // Adjust based on plan interval
 //        double monthlyCost = selectedPlan.getAmount();
 //        double totalCost = monthlyCost * planDuration;
-
-
+//
+//
 //    Optional<Subscription> existingSub = subscriptionRepository.findById(subscriptionRequest.getId());
 //        log.info("Already Existing Subscription: {}", existingSub);
 //
@@ -377,7 +376,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 //        return subscription;
 //    }
 //
-
+//
 
 
 
