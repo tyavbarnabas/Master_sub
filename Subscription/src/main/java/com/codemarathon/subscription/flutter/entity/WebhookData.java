@@ -44,7 +44,9 @@ public class WebhookData {
     private String created_at;
     @Column(name = "account_id")
     private Long account_id;
+    @Embedded
     private Customer customer;
+    @Embedded
     private WebhookMeta meta;
 
 }

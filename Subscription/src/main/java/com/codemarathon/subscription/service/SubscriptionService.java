@@ -10,6 +10,9 @@ import com.codemarathon.subscription.flutter.dto.subaccount.SubaccountResponse;
 import com.codemarathon.subscription.dto.subDtos.ProductCheckResponse;
 import com.codemarathon.subscription.dto.subDtos.SubscriptionRequest;
 import com.codemarathon.subscription.dto.subDtos.SubscriptionResponse;
+import com.codemarathon.subscription.flutter.dto.webhook.EvaluatePaymentResponse;
+import com.codemarathon.subscription.flutter.dto.webhook.WebhookDataRequest;
+import com.codemarathon.subscription.flutter.dto.webhook.WebhookResponse;
 
 
 public interface SubscriptionService {
@@ -26,4 +29,10 @@ public interface SubscriptionService {
     SubscriptionResponse createSubscription(SubscriptionRequest subscriptionRequest);
 
     GetAllAccountsResponse getAllSubAccounts(String accountBank, String accountNumber, String bankName);
+
+    WebhookResponse processWebhookEvent(WebhookDataRequest webhookDataRequest, String signature);
+
+    EvaluatePaymentResponse evaluatePayment(SubscriptionRequest subscriptionRequest);
+
+    SubscriptionResponse paySubscription(SubscriptionRequest subscriptionRequest);
 }

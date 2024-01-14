@@ -12,7 +12,8 @@ import java.time.LocalDateTime;
 public class SubscriptionRequest {
 
     private Long userId;
-    private Long productId;
+    private String email;
+    private String productId;
     private String interval;
     private Long planId;
     private Long duration;

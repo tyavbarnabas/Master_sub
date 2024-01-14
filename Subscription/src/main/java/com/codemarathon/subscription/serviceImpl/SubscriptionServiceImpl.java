@@ -11,6 +11,7 @@ import com.codemarathon.product.exception.ProductNotFoundException;
 import com.codemarathon.product.model.Plan;
 import com.codemarathon.product.model.Product;
 import com.codemarathon.subscription.dto.*;
+import com.codemarathon.subscription.exception.*;
 import com.codemarathon.subscription.flutter.dto.banktransfer.BankTransferRequest;
 import com.codemarathon.subscription.flutter.dto.banktransfer.BankTransferResponse;
 import com.codemarathon.subscription.flutter.dto.subaccount.GetAllAccountsResponse;
@@ -19,9 +20,12 @@ import com.codemarathon.subscription.flutter.dto.subaccount.SubaccountResponse;
 import com.codemarathon.subscription.dto.subDtos.ProductCheckResponse;
 import com.codemarathon.subscription.dto.subDtos.SubscriptionRequest;
 import com.codemarathon.subscription.dto.subDtos.SubscriptionResponse;
-import com.codemarathon.subscription.exception.PlanNotFoundException;
-import com.codemarathon.subscription.exception.UnsupportedIntervalException;
-import com.codemarathon.subscription.exception.UserNotFoundException;
+import com.codemarathon.subscription.flutter.dto.webhook.EvaluatePaymentResponse;
+import com.codemarathon.subscription.flutter.dto.webhook.WebhookDataRequest;
+import com.codemarathon.subscription.flutter.dto.webhook.WebhookResponse;
+import com.codemarathon.subscription.flutter.entity.WebhookEntity;
+import com.codemarathon.subscription.flutter.exception.InvalidSecretHash;
+import com.codemarathon.subscription.flutter.repository.WebhookRepository;
 import com.codemarathon.subscription.model.Subscription;
 import com.codemarathon.subscription.repository.SubscriptionRepository;
 import com.codemarathon.subscription.service.SubscriptionService;
@@ -45,7 +49,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     @Value("${master.sub.bank.secret.key}")
     private String secret_key;
     private final WebClient webClient;
-//    private final ProductClient productClient;
+
     @Value("${master.sub.bank.getUserById_URL}")
     private String getUserById_URL;
 
@@ -55,6 +59,12 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
 
     private final NotificationClient notificationClient;
+
+    private final WebhookRepository webhookRepository;
+
+    @Value("${master.sub.bank.flutter.secret.hash}")
+    private String staticSecretHash;
+
 
 
 
@@ -318,70 +328,99 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
 
+    @Override
+    public WebhookResponse processWebhookEvent(WebhookDataRequest webhookDataRequest, String signature) {
+        if (!signature.equals(staticSecretHash)) {
+            log.info("Generated Secret Hash: " + staticSecretHash);
+            throw new InvalidSecretHash("invalid secret hash");
+        }
 
-//    public Subscription createSubscription(Long userId, String productCode, Long planId) {
-//
-//        // Check user authentication
-//        GetUserByIdResponse userResponse = checkUserAuthentication(userId);
-//
-//
-//        if (!userResponse.getResponseCode().equals("000")) {
-//
-//            throw new UserAuthenticationException("User authentication failed");
-//        }
-//
-//         Check if the product and plan exist
-//        ProductResponse productResponse = productClient.getProductByCode(productCode);
-//
-//        if (!productResponse.getResponseCode().equals("000")) {
-//            throw new ProductNotFoundException("Product not found");
-//        }
-//
-//        PlanResponse planResponse = productClient.getPlanById(planId);
-//
-//        if (!planResponse.getResponseCode().equals("000")) {
-//
-//            throw new PlanNotFoundException("Plan not found");
-//        }
-//
-//        // Retrieve the selected plan
-//        Plan selectedPlan = planResponse.getPlan();
-//
-//        // Calculate subscription details
-//        LocalDateTime startDate = LocalDateTime.now();
-//        int planDuration = selectedPlan.getDuration();
-//        LocalDateTime endDate = startDate.plusMonths(planDuration); // Adjust based on plan interval
-//        double monthlyCost = selectedPlan.getAmount();
-//        double totalCost = monthlyCost * planDuration;
-//
-//
-//    Optional<Subscription> existingSub = subscriptionRepository.findById(subscriptionRequest.getId());
-//        log.info("Already Existing Subscription: {}", existingSub);
-//
-//        if(existingSub.isPresent()){
-//
-//        throw new SubscriptionAlreadyExistException("subscription Already Exist");
-//    }
-//
-//        // Create and return a Subscription object
-//        Subscription subscription = new Subscription();
-//        subscription.setUserId(userId);
-//        subscription.setProductId(Long.valueOf(productCode));
-//        subscription.setPlan(selectedPlan);
-//        subscription.setCurrency(selectedPlan.getCurrency());
-//        subscription.setStartDate(startDate);
-//        subscription.setEndDate(endDate);
-//        subscription.setTotalCost(totalCost);
-//
-//        return subscription;
-//    }
-//
-//
+        log.info("Received webhook payload: {}", webhookDataRequest);
+
+        WebhookEntity webhookEvent = new WebhookEntity();
+        webhookEvent.setEvent(webhookDataRequest.getEvent());
+        webhookEvent.setData(webhookDataRequest.getData());
+        webhookEvent.setEvent_type(webhookDataRequest.getEventType());
+        webhookEvent.setReceived_at(LocalDateTime.now());
+
+        List<WebhookEntity> latestWebhooks = webhookRepository.findLatestWebhooksByEmail(webhookDataRequest.getData().getCustomer().getEmail());
+
+        for (WebhookEntity latestWebhook : latestWebhooks) {
+            latestWebhook.setLatestWebhook(false);
+            webhookRepository.save(latestWebhook);
+        }
+
+        webhookEvent.setLatestWebhook(true);
+
+        webhookRepository.save(webhookEvent);
+
+        return WebhookResponse.builder()
+                .responseCode(com.codemarathon.product.constants.GeneralResponseEnum.SUCCESS.getCode())
+                .message(com.codemarathon.product.constants.GeneralResponseEnum.SUCCESS.getMessage())
+                .event(webhookEvent.getEvent())
+                .data(webhookEvent.getData())
+                .eventType(webhookEvent.getEvent_type())
+                .receivedAt(webhookEvent.getReceived_at())
+                .build();
+    }
+
+    @Override
+    public EvaluatePaymentResponse evaluatePayment(SubscriptionRequest subscriptionRequest) {
+
+        List<WebhookEntity> latestWebhooks = webhookRepository.findLatestWebhooksByEmail(subscriptionRequest.getEmail());
+        log.info("latest webhooks: {} ", latestWebhooks);
+
+        if (latestWebhooks.isEmpty()) {
+            throw new WebhookNotFoundException("No webhook found for the user's email");
+        }
+
+        WebhookEntity latestWebhook = latestWebhooks.get(0); // Assuming the list is ordered by receivedAt
+
+        PlanCostResponse calculatedCost = calculateTheCostPlan(subscriptionRequest);
+        log.info("calculatedCost : {}", calculatedCost);
+
+        if ("successful".equals(latestWebhook.getData().getStatus()) &&
+                calculatedCost.getCost().equals(latestWebhook.getData().getAmount())) {
+
+            return EvaluatePaymentResponse.successfulPayment("Payment successful. You can proceed to subscribe.");
+
+        } else if (calculatedCost.getCost().equals(latestWebhook.getData().getAmount())) {
+
+            return EvaluatePaymentResponse.incompletePayment("Payment incomplete. Please complete your balance to subscribe.");
+        } else {
+            return EvaluatePaymentResponse.paymentNotSuccessful("Payment not successful. Please make payment before subscribing.");
+        }
+    }
 
 
+    @Override
+    public SubscriptionResponse paySubscription(SubscriptionRequest subscriptionRequest) {
+
+        GetUserByIdResponse userResponse = checkUserAuthentication(subscriptionRequest.getUserId());
+        log.info("Authenticated user: {}", userResponse);
+
+        ProductCheckResponse productCheckResponse = checkProductAndPlanExistence(
+                subscriptionRequest.getProductId(), subscriptionRequest.getPlanId());
+        log.info("Product check response: {}", productCheckResponse);
 
 
+        EvaluatePaymentResponse paymentEvaluation = evaluatePayment(subscriptionRequest);
+        log.info("Payment evaluation: {}", paymentEvaluation);
 
+        if ("000".equals(paymentEvaluation.getResponseCode())) {
+
+            SubscriptionResponse subscriptionResponse = createSubscription(subscriptionRequest);
+
+            return SubscriptionResponse.builder()
+                    .responseCode("000")
+                    .message("Process Completed successfully")
+                    .subscriptionDetails(subscriptionResponse.getSubscriptionDetails())
+                    .build();
+        } else {
+
+            throw new SubscriptionPaymentFailedException(paymentEvaluation.getMessage());
+        }
+    }
 
 
 }

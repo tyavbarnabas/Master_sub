@@ -73,4 +73,11 @@ public class SubscriptionController {
     }
 
 
+    @PostMapping("/pay-subscription")
+    public SubscriptionResponse paySubscription(@RequestBody SubscriptionRequest subscriptionRequest){
+        return subscriptionService.paySubscription(subscriptionRequest);
+    }
+
+
+
 }

@@ -19,7 +19,7 @@ public class Subscription {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long Id;
     private Long  userId;
-    private Long productId;
+    private String productId;
     private Long planId;
     private String currency;
     private Long duration;

@@ -21,9 +21,7 @@ public class WebhookEntity {
     private String event;
     @Embedded
     private WebhookData data;
-
-
     private String event_type;
-
     private LocalDateTime received_at;
+    private boolean isLatestWebhook;
 }
