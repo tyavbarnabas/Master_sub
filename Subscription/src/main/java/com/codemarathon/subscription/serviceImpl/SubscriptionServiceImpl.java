@@ -387,7 +387,9 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         } else if (calculatedCost.getCost().equals(latestWebhook.getData().getAmount())) {
 
             return EvaluatePaymentResponse.incompletePayment("Payment incomplete. Please complete your balance to subscribe.");
+
         } else {
+            
             return EvaluatePaymentResponse.paymentNotSuccessful("Payment not successful. Please make payment before subscribing.");
         }
     }
